@@ -14,5 +14,9 @@
 			"deno.ns",
 			"dom.asynciterable"
 		]
+	},
+	"fmt": {
+		"indentWidth": 4,
+		"useTabs": true
 	}
 }
