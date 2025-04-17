@@ -30,6 +30,7 @@ export async function newContext(broswer: Browser): Promise<Context> {
 
 async function main() {
 	const browser = await launch();
+
 	const page = await browser.newPage();
 	await page.goto("http://localhost:5173");
 
