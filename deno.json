@@ -18,5 +18,13 @@
 	"fmt": {
 		"indentWidth": 4,
 		"useTabs": true
+	},
+	"lint": {
+		"rules": {
+			"include": [
+				"camelcase",
+				"no-unused-vars"
+			]
+		}
 	}
 }
