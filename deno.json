@@ -1,4 +1,7 @@
 {
+	"name": "@spectre/spectre",
+	"version": "0.1.0-alpha",
+	"exports": "./main.ts",
 	"tasks": {
 		"dev": "deno run -A --watch main.ts",
 		"task": "deno test -A",
