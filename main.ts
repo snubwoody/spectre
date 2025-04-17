@@ -2,25 +2,51 @@ import { Page } from "puppeteer";
 import { ElementHandle } from "puppeteer";
 import { Browser, launch } from "puppeteer";
 
+export class Element {
+	handle: ElementHandle;
+
+	constructor(handle: ElementHandle) {
+		this.handle = handle;
+	}
+
+	textContent = () => this.handle.evaluate((h) => h.textContent);
+}
+
 export class Context {
 	private page: Page;
 
 	constructor(page: Page) {
 		this.page = page;
-		// 	await page.goto("http://localhost:5173")
+	}
 
-		// await page.evaluate(()=>{
-		// 	const button = document.createElement('button')
-		// 	button.textContent = "Hello world"
-		// 	document.body.appendChild(button)
-		// })
+	/** Goto a specific url */
+	goto = () => this.page.goto("http://localhost:5173");
 
-		// const buttonHandle = await page.locator('button').waitHandle()
-		// const button = new HtmlElement(buttonHandle,page)
-		// const text = await button.textContent()
-		// console.log(text)
+	async evaluate<T>(func: () => T) {
+		return await this.page.evaluate(func);
+	}
 
-		// assertEquals(text,"Hello world")
+	/**
+	 * Get an element by it's id.
+	 *
+	 * If multiple elements have the same id then the first
+	 * one will be matched.
+	 *
+	 * @param id - The id of the element to locate
+	 * @param timeout - The timeout in milliseconds
+	 */
+	async locateById(
+		id: string,
+		timeout: number = 20_000,
+	): Promise<Element | null> {
+		try {
+			const handle = await this.page.waitForSelector(`#${id}`, {
+				timeout,
+			});
+			return handle ? new Element(handle) : null;
+		} catch {
+			return null;
+		}
 	}
 }
 
