@@ -1,0 +1,21 @@
+name: Windows x86_64
+on:
+  push: 
+    branches: ["main"]
+  pull_request: 
+    branches: ["main"]
+jobs:
+  test:
+    name: Test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deno
+        uses: denoland/setup-deno@v2
+        with: 
+          deno-version: 'v2.x'
+
+      - name: Install chrome
+        run: deno run -A download.ts
+      
