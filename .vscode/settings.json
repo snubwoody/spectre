@@ -1,7 +1,9 @@
 {
 	"editor.formatOnSave": true,
 	"deno.enable": true,
-	"editor.defaultFormatter": "denoland.vscode-deno",
+	"[typescript]": {
+		"editor.defaultFormatter": "denoland.vscode-deno"
+	},
 	"[github-actions-workflow]": {
 		"editor.tabSize": 2,
 		"editor.insertSpaces": true
