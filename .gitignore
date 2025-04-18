@@ -135,4 +135,10 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# Temp downloaded files and folderd
 depot_tools/
+chromium/
+chromium*
+chromium-*
+chrome-*
+chrome
