@@ -15,6 +15,9 @@ jobs:
         uses: denoland/setup-deno@v2
         with: 
           deno-version: 'v2.x'
+
+      - name: Install chromium
+        run: deno run -A npm:puppeteer browsers install chrome
       
       - name: Test
         run: deno test -A
