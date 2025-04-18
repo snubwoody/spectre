@@ -21,7 +21,7 @@
 	"fmt": {
 		"indentWidth": 4,
 		"useTabs": true,
-		"lineWidth": 60
+		"lineWidth": 80
 	},
 	"lint": {
 		"rules": {

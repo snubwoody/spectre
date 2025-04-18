@@ -1,5 +1,5 @@
 import { assertEquals, assertExists } from "@std/assert";
-import { Context, newContext } from "../main.ts";
+import { Context, newContext } from "../element.ts";
 import { Browser, launch } from "puppeteer";
 
 Deno.test("Context evaluate function runs in dom", async () => {
