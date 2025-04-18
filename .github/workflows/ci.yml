@@ -17,4 +17,4 @@ jobs:
           deno-version: 'v2.x'
       
       - name: Test
-        run: deno run test -A
+        run: deno test -A

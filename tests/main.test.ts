@@ -1,7 +1,5 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { Context, newContext } from "../main.ts";
-import { Page } from "puppeteer";
-import { ElementHandle } from "puppeteer";
 import { Browser, launch } from "puppeteer";
 
 Deno.test("Context evaluate function runs in dom", async () => {
@@ -118,7 +116,7 @@ Deno.test("Locate an element by it's class", async () => {
 	const element = await page.getByClass("does-not-exist");
 
 	assertExists(btn);
-	assertEquals(element, null);
+	assertEquals(element, []);
 	await browser.close();
 });
 
