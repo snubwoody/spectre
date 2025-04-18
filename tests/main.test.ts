@@ -36,8 +36,11 @@ Deno.test("Locate an element by it's id", async () => {
 		document.body.appendChild(button);
 	});
 
-	const btn = await page.locateById("my-button", 5000);
-	const element = await page.locateById("does-not-exist", 5000);
+	const btn = await page.getById("my-button", 5000);
+	const element = await page.getById(
+		"does-not-exist",
+		5000,
+	);
 
 	assertExists(btn);
 	assertEquals(element, null);
@@ -61,7 +64,7 @@ Deno.test("Duplicate element id's", async () => {
 		document.body.appendChild(btn2);
 	});
 
-	const btn = await page.locateById("my-btn", 5000);
+	const btn = await page.getById("my-btn", 5000);
 
 	assertExists(btn);
 	assertEquals(await btn.textContent(), "I was first");
@@ -89,13 +92,77 @@ Deno.test("Element text content", async () => {
 		document.body.appendChild(btn3);
 	});
 
-	const btn1 = await page.locateById("btn-1", 5000);
-	const btn2 = await page.locateById("btn-2", 5000);
-	const btn3 = await page.locateById("btn-3", 5000);
+	const btn1 = await page.getById("btn-1", 5000);
+	const btn2 = await page.getById("btn-2", 5000);
+	const btn3 = await page.getById("btn-3", 5000);
 
 	assertEquals(await btn1?.textContent(), "Button 1");
 	assertEquals(await btn2?.textContent(), "Button 2");
 	assertEquals(await btn3?.textContent(), "");
 
+	await browser.close();
+});
+
+Deno.test("Locate an element by it's class", async () => {
+	const browser = await launch();
+	const page = await newContext(browser);
+
+	await page.evaluate(() => {
+		const button = document.createElement("button");
+		button.textContent = "Hello world";
+		button.className = "my-button";
+		document.body.appendChild(button);
+	});
+
+	const btn = await page.getByClass("my-button");
+	const element = await page.getByClass("does-not-exist");
+
+	assertExists(btn);
+	assertEquals(element, null);
+	await browser.close();
+});
+
+Deno.test("Multiple elements with the same class", async () => {
+	const browser = await launch();
+	const page = await newContext(browser);
+
+	await page.evaluate(() => {
+		const button = document.createElement("button");
+		const link = document.createElement("a");
+
+		link.textContent = "Hello";
+		button.textContent = "world";
+		link.className = "underline";
+		button.className = "underline";
+
+		document.body.appendChild(link);
+		document.body.appendChild(button);
+	});
+
+	const elements = await page.getByClass("underline");
+
+	// Elements are in the order they were appended
+	assertEquals(elements.length, 2);
+	assertEquals(await elements[0].textContent(), "Hello");
+	assertEquals(await elements[1].textContent(), "world");
+
+	await browser.close();
+});
+
+Deno.test("Add an element to the dom", async () => {
+	const browser = await launch();
+	const page = await newContext(browser);
+
+	await page.createElement(
+		"button",
+		{
+			id: "element",
+		},
+		"Click me",
+	);
+
+	const element = await page.getById("element");
+
+	assertEquals(await element?.textContent(), "Click me");
 	await browser.close();
 });
