@@ -1,6 +1,8 @@
 mod error;
 pub use error::Error;
 use futures_util::{StreamExt, future, pin_mut};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::{
     io::{Cursor, Read},
     process::{Child, Command},
@@ -50,17 +52,30 @@ impl Browser {
             .args(&[
                 "--headless",
                 "--disable-gpu",
+                "--no-sandbox",
                 &format!("--remote-debugging-port={}", 5000),
             ])
             .spawn()?;
 
+		#[derive(Debug,Serialize,Deserialize)]
+		#[serde(rename_all="camelCase")]
+		struct ResponseBody{
+			web_socket_debugger_url: String,
+			
+		}
+
         let response = reqwest::get(format!("http://localhost:{}/json/version", port)).await?;
-        let ws_url = response.text().await?;
-        dbg!(&ws_url);
-        let (ws, _) = connect_async(ws_url).await?;
-        println!("Connected to chrome websocket");
-        let (write, read) = ws.split();
-        dbg!(&write);
+        let body: ResponseBody = response.json().await?;
+
+		dbg!(&body);
+		let ws_url = body.web_socket_debugger_url;
+		let (ws, _) = connect_async(ws_url).await?;
+		let (write, read) = ws.split();
+		dbg!(&read);
+		dbg!(&write);
+		println!("Connected to chrome websocket");
+
+        // dbg!(&write);
         Ok(Self { process: child })
     }
 }
