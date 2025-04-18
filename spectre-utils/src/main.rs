@@ -1,5 +1,4 @@
-mod error;
-pub use error::Error;
+pub use spectre::Error;
 use futures_util::{StreamExt, future, pin_mut};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
