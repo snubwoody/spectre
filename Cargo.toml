@@ -1,9 +1,8 @@
-[package]
-name = "spectre-rs"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "3"
+members = [ "spectre-utils","spectre"]
 
-[dependencies]
+[workspace.dependencies]
 futures-util = "0.3.31"
 reqwest = { version = "0.12.15", features = ["json"] }
 serde = { version = "1.0.219", features = ["derive"] }
@@ -12,3 +11,4 @@ thiserror = "2.0.12"
 tokio = { version = "1.44.2", features = ["full"] }
 tokio-tungstenite = "0.26.2"
 zip = "2.6.1"
+
