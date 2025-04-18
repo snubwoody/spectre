@@ -20,7 +20,8 @@
 	},
 	"fmt": {
 		"indentWidth": 4,
-		"useTabs": true
+		"useTabs": true,
+		"lineWidth": 60
 	},
 	"lint": {
 		"rules": {
