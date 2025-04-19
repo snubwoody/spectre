@@ -1,5 +1,4 @@
 use std::fmt::Debug;
-
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -44,6 +43,17 @@ impl CDPMessage {
         }
     }
 
+	/// Navigate the page
+	/// 
+	/// Corresponds to [`Page.navigate`](https://vanilla.aslushnikov.com/?Page.navigate)
+    pub fn navigate(id: i32, session_id: &str, url: &str) -> Self {
+        Self {
+            id,
+            session_id: Some(String::from(session_id)),
+            method: CDPMethod::Navigate { url: String::from(url) },
+        }
+    }
+
     pub fn screenshot(id: i32, session_id: &str, format: ScreenshotFormat) -> Self {
         Self {
             id,
@@ -71,6 +81,8 @@ pub enum CDPMethod {
     AttachToTarget { target_id: String, flatten: bool },
     #[serde(rename = "Page.captureScreenshot")]
     Screenshot { format: ScreenshotFormat },
+    #[serde(rename = "Page.navigate")]
+    Navigate { url: String },
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -84,10 +96,13 @@ pub enum ScreenshotFormat {
 pub type GetTargetResponse = CDPResponse<GetTargetBody>;
 pub type CreateTargetResponse = CDPResponse<CreateTargetBody>;
 pub type AttachToTargetResponse = CDPResponse<AttachToTargetBody>;
+pub type PageNavigateResponse = CDPResponse<PageNavigateBody>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CDPResponse<T> {
     id: i32,
+	#[serde(rename="sessionId")]
+	session_id: Option<String>,
     result: T,
 }
 
@@ -116,7 +131,15 @@ pub struct GetTargetBody {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AttachToTargetBody {
-    pub session_id: String,
+	pub session_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PageNavigateBody{
+	pub frame_id: String,
+	pub loader_id: String,
+	pub error_text: Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
