@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use serde_json::{Value, json};
+use serde_json::Value;
 use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
@@ -197,7 +197,7 @@ impl CDPConnection {
         self.stream.send(msg).await?;
 
         if let Some(Ok(Message::Text(message))) = self.stream.next().await {
-            match serde_json::from_str(&message.to_string()) {
+            match serde_json::from_str(message.as_ref()) {
                 Ok(response) => {
                     return Ok(response);
                 }
@@ -217,6 +217,7 @@ impl CDPConnection {
 #[cfg(test)]
 mod tests {
     use super::*;
+	use serde_json::json;
     use crate::browser::Browser;
 
     #[tokio::test]

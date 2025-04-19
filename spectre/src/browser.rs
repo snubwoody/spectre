@@ -1,14 +1,12 @@
 use crate::page::Page;
 use crate::{
-    Error, Result,
+    Result,
     cdp::{
         AttachToTargetResponse, CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse,
         GetTargetResponse, Target,
     },
-    error::CDPError,
 };
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
 
 pub struct Browser {
@@ -28,7 +26,7 @@ impl Browser {
         std::mem::drop(listener);
 
         let child = Command::new("../chrome-win64/chrome.exe")
-            .args(&[
+            .args([
                 "--headless",
                 "--disable-gpu",
                 "--no-sandbox",

@@ -1,11 +1,10 @@
 //! Test that all CDP messages and their
 //! responses are parsed correctly
-use serde_json::Value;
 use spectre::{
     Result,
     browser::Browser,
     cdp::{
-        CDPConnection, CDPMessage, CDPMethod, CDPResponse, CreateTargetResponse, GetTargetBody,
+        CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse,
         GetTargetResponse,
     },
 };
@@ -39,7 +38,7 @@ async fn create_target() -> Result<()> {
 #[tokio::test]
 async fn attach_to_target() -> Result<()> {
     let browser = Browser::launch().await?;
-    let mut conn = CDPConnection::root(browser.url()).await?;
+    let conn = CDPConnection::root(browser.url()).await?;
 
     Ok(())
 }
