@@ -1,25 +1,23 @@
+use clap::{Parser, Subcommand, ValueEnum};
 pub use spectre::Error;
 use std::io::Cursor;
-use clap::{Parser, Subcommand,ValueEnum};
 
-#[derive(Debug,Parser)]
-#[command(version,about)]
-struct Args{
-	#[command(subcommand)]
-	command: Command
+#[derive(Debug, Parser)]
+#[command(version, about)]
+struct Args {
+    #[command(subcommand)]
+    command: Command,
 }
 
-#[derive(Debug,Subcommand)]
-enum Command{
-	/// Download a browser
-	Download{
-		browser: Browser
-	}
+#[derive(Debug, Subcommand)]
+enum Command {
+    /// Download a browser
+    Download { browser: Browser },
 }
 
-#[derive(Debug,Clone,ValueEnum)]
-enum Browser{
-	Chrome
+#[derive(Debug, Clone, ValueEnum)]
+enum Browser {
+    Chrome,
 }
 
 async fn download_chrome() -> Result<(), Error> {
@@ -56,16 +54,14 @@ async fn download_chrome() -> Result<(), Error> {
 
 #[tokio::main]
 async fn main() -> spectre::Result<()> {
-	let args = Args::parse();
-	match args.command{
-		Command::Download { browser } => {
-			match browser {
-				Browser::Chrome =>{
-					download_chrome().await?;
-				}
-			}
-		}
-	}
-	
-	Ok(())
+    let args = Args::parse();
+    match args.command {
+        Command::Download { browser } => match browser {
+            Browser::Chrome => {
+                download_chrome().await?;
+            }
+        },
+    }
+
+    Ok(())
 }

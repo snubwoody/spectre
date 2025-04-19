@@ -1,5 +1,5 @@
-mod error;
 pub mod browser;
-pub mod page;
 pub mod cdp;
-pub use error::{Error,Result};
+mod error;
+pub mod page;
+pub use error::{Error, Result};
