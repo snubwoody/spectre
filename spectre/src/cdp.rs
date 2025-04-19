@@ -36,10 +36,10 @@ impl CDPMessage {
         }
     }
 
-    pub fn get_targets(id: i32, session_id: &str) -> Self {
+    pub fn get_targets(id: i32) -> Self {
         Self {
             id,
-            session_id: Some(String::from(session_id)),
+            session_id: None,
             method: CDPMethod::GetTargets,
         }
     }
@@ -83,6 +83,7 @@ pub enum ScreenshotFormat {
 
 pub type GetTargetResponse = CDPResponse<GetTargetBody>;
 pub type CreateTargetResponse = CDPResponse<CreateTargetBody>;
+pub type AttachToTargetResponse = CDPResponse<AttachToTargetBody>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CDPResponse<T> {
@@ -113,29 +114,15 @@ pub struct GetTargetBody {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AttachToTargetResponse {
-    method: String,
-    params: AttachToTargetBody,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AttachToTargetBody {
-    session_id: String,
-    target_info: Target,
-    waiting_for_debugger: bool,
-}
-
-impl AttachToTargetResponse {
-    pub fn session_id(&self) -> &str {
-        &self.params.session_id
-    }
+    pub session_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Target {
-    target_id: String,
+    pub target_id: String,
     #[serde(rename = "type")]
     target_type: TargetType,
     title: String,
@@ -196,18 +183,23 @@ impl CDPConnection {
         let msg: Message = Message::Text(message.json()?.to_string().into());
         self.stream.send(msg).await?;
 
-        if let Some(Ok(Message::Text(message))) = self.stream.next().await {
-            match serde_json::from_str(message.as_ref()) {
-                Ok(response) => {
-                    return Ok(response);
-                }
-                Err(err) => {
-                    dbg!(&message);
-                    dbg!(&err);
-                    let response: CDPError = serde_json::from_str(&message)?;
-                    return Err(response.into());
-                }
-            }
+        while let Some(Ok(Message::Text(message))) = self.stream.next().await {
+            let json: Value = serde_json::from_str(message.as_str())?;
+			// Filter out events and only return
+			// responses
+			if let Some(_) = json.get("id"){
+				match serde_json::from_str(message.as_ref()) {
+					Ok(response) => {
+						return Ok(response);
+					}
+					Err(err) => {
+						dbg!(&message);
+						dbg!(&err);
+						let response: CDPError = serde_json::from_str(&message)?;
+						return Err(response.into());
+					}
+				}
+			}
         }
 
         Err(Error::FailedToSendMessage)
@@ -217,7 +209,6 @@ impl CDPConnection {
 #[cfg(test)]
 mod tests {
     use super::*;
-	use serde_json::json;
     use crate::browser::Browser;
 
     #[tokio::test]
@@ -246,23 +237,6 @@ mod tests {
         let _: GetTargetResponse = conn2
             .send(CDPMessage::root(2, CDPMethod::GetTargets))
             .await?;
-
-        Ok(())
-    }
-
-    #[test]
-    fn message_json_representation() -> Result<()> {
-        let method = CDPMessage::get_targets(20, "abc");
-        let json = method.json()?;
-
-        assert_eq!(
-            json,
-            json!({
-                "id": 20,
-                "sessionId":"abc",
-                "method": "Target.getTargets"
-            })
-        );
 
         Ok(())
     }
