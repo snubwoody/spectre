@@ -223,6 +223,9 @@ impl Browser {
 
 impl Drop for Browser {
     fn drop(&mut self) {
+		// TODO close the browser gracefully first
+		// https://vanilla.aslushnikov.com/?Browser.close
+		
         // Don't leave zombie processes
         self.process
             .kill()

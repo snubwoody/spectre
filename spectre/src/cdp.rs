@@ -1,67 +1,73 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tokio::net::TcpStream;
-use std::process::{Child, Command, Stdio};
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use crate::{error::CDPError, Error, Result};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{json, Value};
 use tokio_tungstenite::tungstenite::Message;
 
+
 #[derive(Debug,Deserialize,Serialize)]
-pub enum CDPMessage{
-	GetTargets(i32),
+#[serde(rename_all="camelCase")]
+pub struct CDPMessage{
+	id: i32,
+	// Null for the root session
+	#[serde(skip_serializing_if="Option::is_none")]
+	session_id: Option<String>,
+	#[serde(flatten)]
+	method: CDPMethod
+}
+
+impl CDPMessage{
+	pub fn new(id:i32,session_id: &str,method: CDPMethod) -> Self{
+		Self { id, session_id: Some(String::from(session_id)), method }
+	}
+
+	pub fn root(id:i32,method: CDPMethod) -> Self{
+		Self{
+			id,
+			session_id: None,
+			method
+		}
+	}
+
+	pub fn get_targets(id:i32,session_id: &str) -> Self{
+		Self { 
+			id, 
+			session_id: Some(String::from(session_id)), 
+			method: CDPMethod::GetTargets
+		}
+	}
+
+	/// Get the json representation of the message
+	pub fn json(&self) -> Result<Value>{
+		let json = serde_json::to_value(self)?;
+		Ok(json)
+	}
+}
+
+
+
+#[derive(Debug,Deserialize,Serialize)]
+#[serde(tag="method",content="params")]
+pub enum CDPMethod{
+	#[serde(rename="Target.getTargets")]
+	GetTargets,
+	#[serde(rename="Target.createTargets")]
 	CreateTarget{
-		id: i32,
 		url: String
 	},
+	#[serde(rename="Target.attachToTarget")]
 	AttachToTarget{
-		id: i32,
 		target_id: String
 	}
 }
 
-impl CDPMessage{
-	/// Get a JSON representation of the message
-	/// # Example
-	/// ```
-	/// use spectre::browser::CDPMessage;
-	/// use serde_json::json;
-	/// 
-	/// let message = CDPMessage::GetTargets(200);
-	/// let json = message.json();
-	/// 
-	/// assert_eq!(json,json!({
-	/// 	"id": 200,
-	/// 	"method": "Target.getTargets"
-	/// }));
-	/// ```
-	pub fn json(&self) -> Value{
-		match self{
-			Self::GetTargets(id) => json!({"id":id,"method":"Target.getTargets"}),
-			Self::CreateTarget { id, url } => json!({
-				"id": id,
-				"method": "Target.createTarget",
-				"params": {
-					"url": url
-				}
-			}),
-			Self::AttachToTarget { id, target_id } => json!({
-				"id":id,
-				"method": "Target.attachToTarget",
-				"params":{
-					"targetId": target_id,
-					"flatten": true
-				}
-			})
-		}
-	}
-}
-
-impl Into<Message> for CDPMessage{
-	fn into(self) -> Message {
-		Message::text(self.json().to_string())
-	}
-}
+// impl Into<Message> for CDPMessage{
+// 	fn into(self) -> Message {
+// 		Message::text(self.json().to_string())
+// 	}
+// }
 
 #[derive(Debug,Serialize,Deserialize)]
 struct TargetResponse{
@@ -143,7 +149,8 @@ impl CDPConnection{
 	pub async fn send<T>(&mut self,message: CDPMessage) -> Result<T>
 	where T: DeserializeOwned
 	{
-		let msg: Message = message.into();
+		let msg: Message = Message::Text(message.json()?.to_string().into());
+
 		self.stream.send(msg).await?;
 
 		if let Some(Ok(Message::Text(message))) = self.stream.next().await{
@@ -164,4 +171,24 @@ impl CDPConnection{
 
 #[cfg(test)]
 mod tests{
+	use super::*;
+
+	#[test]
+	fn send_cdp_message(){
+
+	}
+
+	#[test]
+	fn message_json_representation() -> Result<()>{
+		let method = CDPMessage::get_targets(20, "abc");
+		let json = method.json()?;
+
+		assert_eq!(json,json!({
+			"id": 20,
+			"sessionId":"abc",
+			"method": "Target.getTargets"
+		}));
+
+		Ok(())
+	}
 }
