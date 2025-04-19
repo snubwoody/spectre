@@ -1,15 +1,19 @@
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{de::{value, DeserializeOwned}, Deserialize, Serialize};
 use tokio::net::TcpStream;
 use std::process::{Child, Command, Stdio};
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
-use crate::{Error,Result};
+use crate::{error::CDPError, Error, Result};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{json, Value};
 use tokio_tungstenite::tungstenite::Message;
 
 #[derive(Debug,Deserialize,Serialize)]
 pub enum CDPMessage{
-	GetTargets(i32)
+	GetTargets(i32),
+	CreateTarget{
+		id: i32,
+		url: String
+	}
 }
 
 impl CDPMessage{
@@ -29,8 +33,20 @@ impl CDPMessage{
 	/// ```
 	pub fn json(&self) -> Value{
 		match self{
-			Self::GetTargets(id) => json!({"id":id,"method":"Targets.getTargets"})
+			Self::GetTargets(id) => json!({"id":id,"method":"Targets.getTargets"}),
+			Self::CreateTarget { id, url } => json!({
+				"id": id,
+				"params": {
+					"url": url
+				}
+			})
 		}
+	}
+}
+
+impl Into<Message> for CDPMessage{
+	fn into(self) -> Message {
+		Message::text(self.json().to_string())
 	}
 }
 
@@ -122,22 +138,22 @@ impl Browser {
     }
 
 	/// Send a message to the browser using the cdp protocol
-	pub async fn send<T>(&mut self) -> Result<T>
+	pub async fn send<T>(&mut self,message: CDPMessage) -> Result<T>
 	where T: DeserializeOwned
 	{
-		let message = Message::text(json!({
-			"id": 1,
-			"method":"Target.createTarget",
-			"params":{
-				"url":"https://youtube.com"
-			}
-		}).to_string());
-
-		self.stream.send(message).await?;
+		let msg: Message = message.into();
+		self.stream.send(msg).await?;
 
 		if let Some(Ok(Message::Text(message))) = self.stream.next().await{
-			let response: T = serde_json::from_str(&message.to_string())?;
-			return Ok(response);
+			match serde_json::from_str(&message.to_string()) {
+				Ok(response) => {
+					return Ok(response);
+				}
+				Err(_)=>{
+					let response: CDPError = serde_json::from_str(&message)?;
+					return Err(response.into());
+				}
+			}
 		}
 
 		Err(Error::FailedToSendMessage)
@@ -158,44 +174,24 @@ impl Drop for Browser {
 mod tests{
 	use futures_util::{SinkExt, StreamExt};
 	use serde_json::{json, Value};
-	use tokio_tungstenite::tungstenite::Message;
 	
 	use super::*;
 
 	#[tokio::test]
 	async fn start_browser() -> Result<()>{
-		let browser = Browser::launch().await?;
-		let response = reqwest::get(format!("http://localhost:{}/json/version", 5000)).await?;
+		let _ = Browser::launch().await?;
+		let _ = reqwest::get(format!("http://localhost:{}/json/version", 5000)).await?;
 		Ok(())
 	}
 
 	#[tokio::test]
 	async fn startup_browser() -> Result<()>{
 		let mut browser = Browser::launch().await?;
-		let message = Message::text(json!({
-			"id": 1,
-			"method":"Target.createTarget",
-			"params":{
-				"url":"https://youtube.com"
-			}
-		}).to_string());
+		let message = CDPMessage::CreateTarget { id: 1, url: String::from("https://youtube.com") };
+		browser.send::<Value>(message).await?;
 
-		browser.stream.send(message).await?;
-		if let Some(Ok(Message::Text(message))) = browser.stream.next().await{
-			let response: Value = serde_json::from_str(&message.to_string())?;
-			dbg!(response);
-		}
-
-		let message = Message::text(json!({
-			"id": 1,
-			"method":"Target.getTargets"
-		}).to_string());
-
-		browser.stream.send(message).await?;
-		if let Some(Ok(Message::Text(message))) = browser.stream.next().await{
-			let response: TargetResponse = serde_json::from_str(&message.to_string())?;
-			dbg!(response);
-		}
+		let targets: TargetResponse = browser.send(CDPMessage::GetTargets(2)).await?;
+		dbg!(targets);
 
 		Ok(())
 	}
