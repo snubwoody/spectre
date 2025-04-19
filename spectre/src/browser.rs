@@ -83,6 +83,19 @@ struct AttachToTargetBody{
 	waiting_for_debugger:bool
 }
 
+#[derive(Debug,Serialize,Deserialize)]
+#[serde(rename_all="camelCase")]
+struct CreateTargetResponse{
+	id: i32,
+	result: CreateTargetBody
+}
+
+#[derive(Debug,Serialize,Deserialize)]
+#[serde(rename_all="camelCase")]
+struct CreateTargetBody{
+	target_id: String
+}
+
 
 #[derive(Debug,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
@@ -121,10 +134,12 @@ pub struct Browser {
 
 impl Browser {
     pub async fn launch() -> Result<Self> {
-		let port = match std::env::var("SPECTRE_PORT"){
-			Ok(var) => var,
-			Err(_)=> String::from("5000")
-		};
+		
+		// Get any available port
+		let listener = std::net::TcpListener::bind("0.0.0.0:0")?;
+		let port = listener.local_addr()?.port();
+
+		std::mem::drop(listener);
 
         let child = Command::new("../chrome-win64/chrome.exe")
             .args(&[
@@ -186,8 +201,15 @@ impl Browser {
 		Err(Error::FailedToSendMessage)
 	}
 
-	pub async fn goto(&self){
+	pub async fn goto(&mut self, url: &str) -> Result<Page>{
+		let message = CDPMessage::CreateTarget { id: 1, url: String::from(url) };
+		let response: CreateTargetResponse = self.send(message).await?;
 
+		let message = CDPMessage::AttachToTarget { id: 2, target_id:response.result.target_id }; 
+		let response: AttachToTargetResponse = self.send(message).await?;
+		let page = Page::new(&response.params.session_id);
+
+		Ok(page)
 	}
 }
 
@@ -202,7 +224,7 @@ impl Drop for Browser {
 }
 
 pub struct Page{
-	session_id: String
+	session_id: String,
 }
 
 impl Page{
@@ -243,14 +265,7 @@ mod tests{
 	#[tokio::test]
 	async fn goto_page() -> Result<()>{
 		let mut browser = Browser::launch().await?;
-		let targets = browser.get_targets().await?;
-		let target_id = targets[0].target_id.clone();
-
-		let response: AttachToTargetResponse = browser.send(
-			CDPMessage::AttachToTarget { id: 2, target_id }
-		).await?;
-
-		dbg!(response);
+		let page = browser.goto("https://youtube.com");
 		
 		Ok(())
 	}
