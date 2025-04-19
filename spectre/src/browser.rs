@@ -1,13 +1,15 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde_json::Value;
 use std::process::{Child, Command, Stdio};
-use crate::{cdp::{AttachToTargetResponse, CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse, Target, TargetResponse}, error::CDPError, Error, Result};
+use crate::{cdp::{AttachToTargetResponse, CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse, GetTargetResponse, Target}, error::CDPError, Error, Result};
 use crate::page::Page;
 
 pub struct Browser {
     process: Child,
 	conn: CDPConnection,
 	/// The local network address of chrome 
-	url: String
+	url: String,
+	message_id: i32,
 }
 
 impl Browser {
@@ -47,6 +49,7 @@ impl Browser {
 				process: child,
 				conn, 
 				url:ws_url,
+				message_id: 0
 			}
 		)
     }
@@ -56,25 +59,27 @@ impl Browser {
 	}
 
 	pub async fn get_targets(&mut self) -> Result<Vec<Target>>{
-
-		let response: TargetResponse = self.conn.send(
-			CDPMessage::root(1, CDPMethod::GetTargets)
+		let response: GetTargetResponse = self.conn.send(
+			CDPMessage::root(self.message_id, CDPMethod::GetTargets)
 		).await?;
-		
-		Ok(response.targets())
+
+		self.message_id += 1;
+		Ok(response.body().targets)
 	}
 
 	pub async fn goto(&mut self, url: &str) -> Result<Page>{
 		let method = CDPMethod::CreateTarget { url: String::from(url) };
-		let message = CDPMessage::root(1, method);
+		let message = CDPMessage::root(self.message_id, method);
 		let response: CreateTargetResponse = self.conn.send(message).await?;
+		self.message_id += 1;
 		
 		let method = CDPMethod::AttachToTarget { 
-			target_id: response.target_id().to_string(),
+				target_id: response.body().target_id,
 			flatten: true 
 		};
-		let message =  CDPMessage::root(1, method); 
+		let message =  CDPMessage::root(self.message_id, method); 
 		let response: AttachToTargetResponse = self.conn.send(message).await?;
+		self.message_id += 1;
 
 		let page = Page::new(response.session_id(),&self.url).await?;
 
@@ -103,7 +108,9 @@ mod tests{
 	async fn goto_page() -> Result<()>{
 		let mut browser = Browser::launch().await?;
 		let _ = browser.goto("https://youtube.com").await?;
-		
+		let targets = browser.get_targets().await?;
+		targets.iter().find(|t|t.url() == "https://www.youtube.com/").unwrap();
+
 		Ok(())
 	}
 }
