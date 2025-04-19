@@ -24,3 +24,6 @@ jobs:
 
       - name: Download chrome
         run: target/release/spectre-utils.exe download chrome
+      
+      - name: Run tests
+        run: cargo test --no-fail-fast
