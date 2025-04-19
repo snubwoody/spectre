@@ -1,11 +1,6 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use tokio::net::TcpStream;
 use std::process::{Child, Command, Stdio};
-use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use crate::{cdp::{AttachToTargetResponse, CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse, Target, TargetResponse}, error::CDPError, Error, Result};
-use futures_util::{SinkExt, StreamExt};
-use serde_json::{json, Value};
-use tokio_tungstenite::tungstenite::Message;
 use crate::page::Page;
 
 pub struct Browser {
@@ -73,11 +68,14 @@ impl Browser {
 		let method = CDPMethod::CreateTarget { url: String::from(url) };
 		let message = CDPMessage::root(1, method);
 		let response: CreateTargetResponse = self.conn.send(message).await?;
-
-		let method = CDPMethod::AttachToTarget { target_id: response.target_id().to_string() };
+		
+		let method = CDPMethod::AttachToTarget { 
+			target_id: response.target_id().to_string(),
+			flatten: true 
+		};
 		let message =  CDPMessage::root(1, method); 
-
 		let response: AttachToTargetResponse = self.conn.send(message).await?;
+
 		let page = Page::new(response.session_id(),&self.url).await?;
 
 		Ok(page)
@@ -99,13 +97,12 @@ impl Drop for Browser {
 
 #[cfg(test)]
 mod tests{
-	use serde_json::Value;
 	use super::*;
 
 	#[tokio::test]
 	async fn goto_page() -> Result<()>{
 		let mut browser = Browser::launch().await?;
-		let page = browser.goto("https://youtube.com");
+		let _ = browser.goto("https://youtube.com").await?;
 		
 		Ok(())
 	}

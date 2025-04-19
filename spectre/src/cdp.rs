@@ -39,6 +39,14 @@ impl CDPMessage{
 		}
 	}
 
+	pub fn screenshot(id:i32,session_id: &str,format: ScreenshotFormat) -> Self{
+		Self { 
+			id, 
+			session_id: Some(String::from(session_id)), 
+			method: CDPMethod::Screenshot{ format}
+		}
+	}
+
 	/// Get the json representation of the message
 	pub fn json(&self) -> Result<Value>{
 		let json = serde_json::to_value(self)?;
@@ -53,21 +61,29 @@ impl CDPMessage{
 pub enum CDPMethod{
 	#[serde(rename="Target.getTargets")]
 	GetTargets,
-	#[serde(rename="Target.createTargets")]
+	#[serde(rename="Target.createTarget")]
 	CreateTarget{
 		url: String
 	},
 	#[serde(rename="Target.attachToTarget")]
+	#[serde(rename_all="camelCase")]
 	AttachToTarget{
-		target_id: String
+		target_id: String,
+		flatten: bool
+	},
+	#[serde(rename="Page.captureScreenshot")]
+	Screenshot{
+		format: ScreenshotFormat
 	}
 }
 
-// impl Into<Message> for CDPMessage{
-// 	fn into(self) -> Message {
-// 		Message::text(self.json().to_string())
-// 	}
-// }
+#[derive(Debug,Deserialize,Serialize)]
+#[serde(rename_all="lowercase")]
+pub enum ScreenshotFormat{
+	Jpeg,
+	Webp,
+	Png,
+}
 
 #[derive(Debug,Serialize,Deserialize)]
 pub struct TargetResponse{
