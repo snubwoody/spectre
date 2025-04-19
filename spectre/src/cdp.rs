@@ -128,13 +128,15 @@ enum TargetType{
 }
 
 pub struct CDPConnection{
-	stream: WebSocketStream<MaybeTlsStream<TcpStream>>
+	stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+	// Empty for the root session
+	session_id: Option<String> 
 }
 
 impl CDPConnection{
-	pub async fn new(url: &str) -> Result<Self>{
+	pub async fn new(url: &str,session_id: Option<String>) -> Result<Self>{
 		let (stream, _) = connect_async(url).await?;
-		Ok(Self { stream })
+		Ok(Self { stream,session_id })
 	}
 
 	/// Send a message 
