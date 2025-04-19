@@ -19,7 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install deno
-        uses: denoland/setup-deno@v2
-        with: 
-          deno-version: 'v2.x'
+      - name: Build utils
+        run: cargo build -p utils --release
+
+      - name: Download chrome
+        run: target/release/spectre-utils.exe download chrome
