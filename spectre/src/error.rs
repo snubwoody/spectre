@@ -9,6 +9,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("Failed to send web socket message")]
     FailedToSendMessage,
+    #[error("{0}")]
+	NavigationError(String),
 
     #[error("CDP Error: {message}")]
     CDPError { code: i32, message: String },
