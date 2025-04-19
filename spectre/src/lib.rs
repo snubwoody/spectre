@@ -1,8 +1,7 @@
 mod error;
-pub use error::Error;
+pub use error::{Error,Result};
 use futures_util::{StreamExt, future, pin_mut};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::{
     io::{Cursor, Read},
     process::{Child, Command},
@@ -14,9 +13,9 @@ pub struct Browser {
 }
 
 impl Browser {
-    pub async fn launch() -> Result<Self, Error> {
+    pub async fn launch() -> Result<Self> {
         let port = 5000;
-        let mut child = Command::new("chrome-win64/chrome.exe")
+        let child = Command::new("chrome-win64/chrome.exe")
             .args(&[
                 "--headless",
                 "--disable-gpu",
@@ -35,7 +34,6 @@ impl Browser {
         let response = reqwest::get(format!("http://localhost:{}/json/version", port)).await?;
         let body: ResponseBody = response.json().await?;
 
-		dbg!(&body);
 		let ws_url = body.web_socket_debugger_url;
 		let (ws, _) = connect_async(ws_url).await?;
 		let (write, read) = ws.split();
@@ -43,16 +41,28 @@ impl Browser {
 		dbg!(&write);
 		println!("Connected to chrome websocket");
 
-        // dbg!(&write);
         Ok(Self { process: child })
     }
 }
 
 impl Drop for Browser {
     fn drop(&mut self) {
+		// FIXME not killing all processes
         // Kill the process with the broswer
         self.process
             .kill()
             .expect("Process should have been killed");
     }
+}
+
+#[cfg(test)]
+mod tests{
+	use super::*;
+
+	#[tokio::test]
+	async fn startup_browser() -> Result<()>{
+		let browser = Browser::launch().await?;
+
+		Ok(())
+	}
 }
