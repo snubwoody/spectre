@@ -1,4 +1,4 @@
-use serde::{de::{value, DeserializeOwned}, Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tokio::net::TcpStream;
 use std::process::{Child, Command, Stdio};
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
@@ -13,6 +13,10 @@ pub enum CDPMessage{
 	CreateTarget{
 		id: i32,
 		url: String
+	},
+	AttachToTarget{
+		id: i32,
+		target_id: String
 	}
 }
 
@@ -28,16 +32,25 @@ impl CDPMessage{
 	/// 
 	/// assert_eq!(json,json!({
 	/// 	"id": 200,
-	/// 	"method": "Targets.getTargets"
+	/// 	"method": "Target.getTargets"
 	/// }));
 	/// ```
 	pub fn json(&self) -> Value{
 		match self{
-			Self::GetTargets(id) => json!({"id":id,"method":"Targets.getTargets"}),
+			Self::GetTargets(id) => json!({"id":id,"method":"Target.getTargets"}),
 			Self::CreateTarget { id, url } => json!({
 				"id": id,
+				"method": "Target.createTarget",
 				"params": {
 					"url": url
+				}
+			}),
+			Self::AttachToTarget { id, target_id } => json!({
+				"id":id,
+				"method": "Target.attachToTarget",
+				"params":{
+					"targetId": target_id,
+					"flatten": true
 				}
 			})
 		}
@@ -56,6 +69,20 @@ struct TargetResponse{
 	result: TargetResult
 }
 
+#[derive(Debug,Serialize,Deserialize)]
+struct AttachToTargetResponse{
+	method: String,
+	params: AttachToTargetBody
+}
+
+#[derive(Debug,Serialize,Deserialize)]
+#[serde(rename_all="camelCase")]
+struct AttachToTargetBody{
+	session_id: String,
+	target_info: Target,
+	waiting_for_debugger:bool
+}
+
 
 #[derive(Debug,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
@@ -65,7 +92,8 @@ struct TargetResult{
 
 #[derive(Debug,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
-struct Target{
+pub struct Target{
+	target_id: String,
 	#[serde(rename="type")]
 	target_type: TargetType,
 	title: String,
@@ -86,13 +114,6 @@ enum TargetType{
 	WebView
 }
 
-#[derive(Debug,Serialize,Deserialize)]
-struct CreateTargetResponse{
-	id: i32,
-	result: TargetResult
-}
-
-
 pub struct Browser {
     process: Child,
 	stream: WebSocketStream<MaybeTlsStream<TcpStream>>
@@ -108,7 +129,7 @@ impl Browser {
         let child = Command::new("../chrome-win64/chrome.exe")
             .args(&[
                 "--headless",
-                "--disable-gpu",
+                "--disable-gpu", 
                 "--no-sandbox",
                 &format!("--remote-debugging-port={}", port),
             ])
@@ -137,6 +158,12 @@ impl Browser {
 		)
     }
 
+	pub async fn get_targets(&mut self) -> Result<Vec<Target>>{
+		let response: TargetResponse = self.send(CDPMessage::GetTargets(0)).await?;
+		
+		Ok(response.result.target_infos)
+	}
+
 	/// Send a message to the browser using the cdp protocol
 	pub async fn send<T>(&mut self,message: CDPMessage) -> Result<T>
 	where T: DeserializeOwned
@@ -158,6 +185,10 @@ impl Browser {
 
 		Err(Error::FailedToSendMessage)
 	}
+
+	pub async fn goto(&self){
+
+	}
 }
 
 impl Drop for Browser {
@@ -170,11 +201,19 @@ impl Drop for Browser {
     }
 }
 
+pub struct Page{
+	session_id: String
+}
+
+impl Page{
+	pub fn new(session_id: &str) -> Self{
+		Page { session_id: String::from(session_id) }
+	}
+}
+
 #[cfg(test)]
 mod tests{
-	use futures_util::{SinkExt, StreamExt};
-	use serde_json::{json, Value};
-	
+	use serde_json::Value;
 	use super::*;
 
 	#[tokio::test]
@@ -185,14 +224,34 @@ mod tests{
 	}
 
 	#[tokio::test]
-	async fn startup_browser() -> Result<()>{
+	async fn send_cdp_message() -> Result<()>{
 		let mut browser = Browser::launch().await?;
 		let message = CDPMessage::CreateTarget { id: 1, url: String::from("https://youtube.com") };
 		browser.send::<Value>(message).await?;
 
-		let targets: TargetResponse = browser.send(CDPMessage::GetTargets(2)).await?;
-		dbg!(targets);
+		let response: TargetResponse = browser.send(CDPMessage::GetTargets(2)).await?;
 
+		for target in response.result.target_infos.iter(){
+			if target.url == "https://www.youtube.com/"{
+				return Ok(());
+			}
+		}
+		
+		panic!();
+	}
+
+	#[tokio::test]
+	async fn goto_page() -> Result<()>{
+		let mut browser = Browser::launch().await?;
+		let targets = browser.get_targets().await?;
+		let target_id = targets[0].target_id.clone();
+
+		let response: AttachToTargetResponse = browser.send(
+			CDPMessage::AttachToTarget { id: 2, target_id }
+		).await?;
+
+		dbg!(response);
+		
 		Ok(())
 	}
 }
