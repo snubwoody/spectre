@@ -70,46 +70,63 @@ pub enum CDPMethod{
 // }
 
 #[derive(Debug,Serialize,Deserialize)]
-struct TargetResponse{
+pub struct TargetResponse{
 	id: i32,
 	result: TargetResult
 }
 
+#[derive(Debug,Serialize,Deserialize,Clone)]
+#[serde(rename_all="camelCase")]
+pub struct TargetResult{
+	target_infos: Vec<Target>
+}
+
+impl TargetResponse{
+	pub fn targets(&self) -> Vec<Target>{
+		self.result.target_infos.clone()
+	}
+}
+
 #[derive(Debug,Serialize,Deserialize)]
-struct AttachToTargetResponse{
+pub struct AttachToTargetResponse{
 	method: String,
 	params: AttachToTargetBody
 }
 
 #[derive(Debug,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
-struct AttachToTargetBody{
+pub struct AttachToTargetBody{
 	session_id: String,
 	target_info: Target,
 	waiting_for_debugger:bool
 }
 
+impl AttachToTargetResponse{
+	pub fn session_id(&self) -> &str{
+		&self.params.session_id
+	}
+}
+
 #[derive(Debug,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
-struct CreateTargetResponse{
+pub struct CreateTargetResponse{
 	id: i32,
 	result: CreateTargetBody
 }
 
+impl CreateTargetResponse{
+	pub fn target_id(&self) -> &str{
+		&self.result.target_id
+	}
+}
+
 #[derive(Debug,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
-struct CreateTargetBody{
+pub struct CreateTargetBody{
 	target_id: String
 }
 
-
-#[derive(Debug,Serialize,Deserialize)]
-#[serde(rename_all="camelCase")]
-struct TargetResult{
-	target_infos: Vec<Target>
-}
-
-#[derive(Debug,Serialize,Deserialize)]
+#[derive(Debug,Serialize,Deserialize,Clone)]
 #[serde(rename_all="camelCase")]
 pub struct Target{
 	target_id: String,
@@ -121,9 +138,9 @@ pub struct Target{
 	browser_context_id: String
 }
 
-#[derive(Debug,Serialize,Deserialize)]
+#[derive(Debug,Serialize,Deserialize,Clone, Copy,PartialEq)]
 #[serde(rename_all="snake_case")]
-enum TargetType{
+pub enum TargetType{
 	Tab,
 	Page,
 	Iframe,
@@ -143,6 +160,12 @@ impl CDPConnection{
 	pub async fn new(url: &str,session_id: Option<String>) -> Result<Self>{
 		let (stream, _) = connect_async(url).await?;
 		Ok(Self { stream,session_id })
+	}
+
+	/// Connect to the root web socket i.e the browser
+	pub async fn root(url: &str) -> Result<Self>{
+		let (stream, _) = connect_async(url).await?;
+		Ok(Self { stream,session_id:None })
 	}
 
 	/// Send a message 
@@ -171,11 +194,37 @@ impl CDPConnection{
 
 #[cfg(test)]
 mod tests{
+	use crate::browser::Browser;
 	use super::*;
 
-	#[test]
-	fn send_cdp_message(){
+	#[tokio::test]
+	async fn send_cdp_message() -> Result<()>{
+		let browser = Browser::launch().await?;
+		let ws_url = browser.url();
 
+		let mut conn = CDPConnection::new(ws_url, None).await?;
+		let message = CDPMessage::root(2, CDPMethod::GetTargets);
+		let _: TargetResponse = conn.send(message).await?;
+
+		Ok(())
+	}
+
+	#[tokio::test]
+	async fn multiple_connections() -> Result<()>{
+		let browser = Browser::launch().await?;
+		let ws_url = browser.url();
+
+		let mut conn1 = CDPConnection::new(ws_url, None).await?;
+		let mut conn2 = CDPConnection::new(ws_url, None).await?;
+
+		let _: TargetResponse = conn1.send(
+			CDPMessage::root(2, CDPMethod::GetTargets)
+		).await?;
+		let _: TargetResponse = conn2.send(
+			CDPMessage::root(2, CDPMethod::GetTargets)
+		).await?;
+
+		Ok(())
 	}
 
 	#[test]
