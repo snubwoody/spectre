@@ -85,7 +85,7 @@ impl Browser {
         let response: AttachToTargetResponse = self.conn.send(message).await?;
         self.message_id += 1;
 
-        let page = Page::new(response.session_id(), &self.url).await?;
+        let page = Page::new(&response.body().session_id, &self.url).await?;
 
         Ok(page)
     }
