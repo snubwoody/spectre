@@ -5,19 +5,22 @@ on:
   pull_request: 
     branches: ["main"]
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build all crates
+        run: cargo build --release
+
   test:
     name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install deno
-        uses: denoland/setup-deno@v2
-        with: 
-          deno-version: 'v2.x'
+      - name: Build utils
+        run: cargo build -p spectre-utils --release
 
-      - name: Install chromium
-        run: deno run -A npm:puppeteer browsers install chrome
-      
-      - name: Test
-        run: deno test -A
+      - name: Download chrome
+        run: target/release/spectre-utils download chrome
