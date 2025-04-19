@@ -1,12 +1,26 @@
 pub use spectre::Error;
-use futures_util::{StreamExt, future, pin_mut};
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::{
-    io::{Cursor, Read},
-    process::{Child, Command},
-};
-use tokio_tungstenite::{connect_async, tungstenite::http::response};
+use std::io::Cursor;
+use clap::{Parser, Subcommand,ValueEnum};
+
+#[derive(Debug,Parser)]
+#[command(version,about)]
+struct Args{
+	#[command(subcommand)]
+	command: Command
+}
+
+#[derive(Debug,Subcommand)]
+enum Command{
+	/// Download a browser
+	Download{
+		browser: Browser
+	}
+}
+
+#[derive(Debug,Clone,ValueEnum)]
+enum Browser{
+	Chrome
+}
 
 async fn download_chrome() -> Result<(), Error> {
     println!("Downloading chrome...");
@@ -40,6 +54,18 @@ async fn download_chrome() -> Result<(), Error> {
     Ok(())
 }
 
-fn main() {
-    println!("Hello, world!");
+#[tokio::main]
+async fn main() -> spectre::Result<()> {
+	let args = Args::parse();
+	match args.command{
+		Command::Download { browser } => {
+			match browser {
+				Browser::Chrome =>{
+					download_chrome().await?;
+				}
+			}
+		}
+	}
+	
+	Ok(())
 }
