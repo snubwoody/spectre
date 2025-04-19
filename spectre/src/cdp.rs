@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
@@ -85,22 +87,36 @@ pub enum ScreenshotFormat{
 	Png,
 }
 
-#[derive(Debug,Serialize,Deserialize)]
-pub struct TargetResponse{
+pub type GetTargetResponse = CDPResponse<GetTargetBody>;
+pub type CreateTargetResponse = CDPResponse<CreateTargetBody>;
+
+#[derive(Debug,Deserialize,Serialize)]
+pub struct CDPResponse<T>{
 	id: i32,
-	result: TargetResult
+	result: T
 }
 
-#[derive(Debug,Serialize,Deserialize,Clone)]
-#[serde(rename_all="camelCase")]
-pub struct TargetResult{
-	target_infos: Vec<Target>
-}
-
-impl TargetResponse{
-	pub fn targets(&self) -> Vec<Target>{
-		self.result.target_infos.clone()
+impl<T> CDPResponse<T>{
+	pub fn id(&self) -> i32{
+		self.id
 	}
+
+	pub fn body(self) -> T{
+		self.result
+	}
+}
+
+
+#[derive(Debug,Serialize,Deserialize)]
+#[serde(rename_all="camelCase")]
+pub struct CreateTargetBody{
+	pub target_id: String
+}
+
+#[derive(Debug,Serialize,Deserialize)]
+pub struct GetTargetBody{
+	#[serde(rename="targetInfos")]
+	pub targets: Vec<Target>
 }
 
 #[derive(Debug,Serialize,Deserialize)]
@@ -123,25 +139,6 @@ impl AttachToTargetResponse{
 	}
 }
 
-#[derive(Debug,Serialize,Deserialize)]
-#[serde(rename_all="camelCase")]
-pub struct CreateTargetResponse{
-	id: i32,
-	result: CreateTargetBody
-}
-
-impl CreateTargetResponse{
-	pub fn target_id(&self) -> &str{
-		&self.result.target_id
-	}
-}
-
-#[derive(Debug,Serialize,Deserialize)]
-#[serde(rename_all="camelCase")]
-pub struct CreateTargetBody{
-	target_id: String
-}
-
 #[derive(Debug,Serialize,Deserialize,Clone)]
 #[serde(rename_all="camelCase")]
 pub struct Target{
@@ -152,6 +149,16 @@ pub struct Target{
 	url: String,
 	attached: bool,
 	browser_context_id: String
+}
+
+impl Target{
+	pub fn id(&self) -> &str{
+		&self.target_id
+	}
+
+	pub fn url(&self) -> &str{
+		&self.url
+	}
 }
 
 #[derive(Debug,Serialize,Deserialize,Clone, Copy,PartialEq)]
@@ -166,6 +173,7 @@ pub enum TargetType{
 	WebView
 }
 
+#[derive(Debug)]
 pub struct CDPConnection{
 	stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
 	// Empty for the root session
@@ -186,10 +194,9 @@ impl CDPConnection{
 
 	/// Send a message 
 	pub async fn send<T>(&mut self,message: CDPMessage) -> Result<T>
-	where T: DeserializeOwned
+	where T: DeserializeOwned + Debug
 	{
 		let msg: Message = Message::Text(message.json()?.to_string().into());
-
 		self.stream.send(msg).await?;
 
 		if let Some(Ok(Message::Text(message))) = self.stream.next().await{
@@ -197,7 +204,9 @@ impl CDPConnection{
 				Ok(response) => {
 					return Ok(response);
 				}
-				Err(_)=>{
+				Err(err)=>{
+					dbg!(&message);
+					dbg!(&err);
 					let response: CDPError = serde_json::from_str(&message)?;
 					return Err(response.into());
 				}
@@ -220,7 +229,7 @@ mod tests{
 
 		let mut conn = CDPConnection::new(ws_url, None).await?;
 		let message = CDPMessage::root(2, CDPMethod::GetTargets);
-		let _: TargetResponse = conn.send(message).await?;
+		let _: GetTargetResponse = conn.send(message).await?;
 
 		Ok(())
 	}
@@ -233,10 +242,10 @@ mod tests{
 		let mut conn1 = CDPConnection::new(ws_url, None).await?;
 		let mut conn2 = CDPConnection::new(ws_url, None).await?;
 
-		let _: TargetResponse = conn1.send(
+		let _: GetTargetResponse = conn1.send(
 			CDPMessage::root(2, CDPMethod::GetTargets)
 		).await?;
-		let _: TargetResponse = conn2.send(
+		let _: GetTargetResponse = conn2.send(
 			CDPMessage::root(2, CDPMethod::GetTargets)
 		).await?;
 
