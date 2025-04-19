@@ -1,1 +1,3 @@
-# spectre
+# spectre-rs
+
+Browser automation tool
