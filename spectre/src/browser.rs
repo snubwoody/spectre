@@ -2,10 +2,11 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tokio::net::TcpStream;
 use std::process::{Child, Command, Stdio};
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
-use crate::{error::CDPError, Error, Result};
+use crate::{cdp::CDPConnection, error::CDPError, Error, Result};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{json, Value};
 use tokio_tungstenite::tungstenite::Message;
+use crate::page::Page;
 
 #[derive(Debug,Deserialize,Serialize)]
 pub enum CDPMessage{
@@ -129,7 +130,9 @@ enum TargetType{
 
 pub struct Browser {
     process: Child,
-	stream: WebSocketStream<MaybeTlsStream<TcpStream>>
+	stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+	/// The local network address of chrome 
+	url: String
 }
 
 impl Browser {
@@ -162,16 +165,21 @@ impl Browser {
         let body: ResponseBody = response.json().await?;
 
 		let ws_url = body.web_socket_debugger_url;
-		let (stream, _) = connect_async(ws_url).await?;
+		let (stream, _) = connect_async(&ws_url).await?;
 		println!("Connected to chrome websocket");
 
         Ok(
 			Self {
 				process: child,
-				stream 
+				stream, 
+				url:ws_url,
 			}
 		)
     }
+
+	pub async fn url(&self) -> &str{
+		&self.url
+	}
 
 	pub async fn get_targets(&mut self) -> Result<Vec<Target>>{
 		let response: TargetResponse = self.send(CDPMessage::GetTargets(0)).await?;
@@ -207,7 +215,7 @@ impl Browser {
 
 		let message = CDPMessage::AttachToTarget { id: 2, target_id:response.result.target_id }; 
 		let response: AttachToTargetResponse = self.send(message).await?;
-		let page = Page::new(&response.params.session_id);
+		let page = Page::new(&response.params.session_id,&self.url).await?;
 
 		Ok(page)
 	}
@@ -215,35 +223,18 @@ impl Browser {
 
 impl Drop for Browser {
     fn drop(&mut self) {
-		// FIXME not killing all processes
-        // Kill the process with the broswer
+        // Don't leave zombie processes
         self.process
             .kill()
             .expect("Process should have been killed");
     }
 }
 
-pub struct Page{
-	session_id: String,
-}
-
-impl Page{
-	pub fn new(session_id: &str) -> Self{
-		Page { session_id: String::from(session_id) }
-	}
-}
 
 #[cfg(test)]
 mod tests{
 	use serde_json::Value;
 	use super::*;
-
-	#[tokio::test]
-	async fn start_browser() -> Result<()>{
-		let _ = Browser::launch().await?;
-		let _ = reqwest::get(format!("http://localhost:{}/json/version", 5000)).await?;
-		Ok(())
-	}
 
 	#[tokio::test]
 	async fn send_cdp_message() -> Result<()>{
