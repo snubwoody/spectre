@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build utils
-        run: cargo build -p spectre-utils --release
+        run: cargo build -p spectre-cli --release
 
       - name: Download chrome
-        run: target/release/spectre-utils download chrome
+        run: target/release/spectre-cli download chrome

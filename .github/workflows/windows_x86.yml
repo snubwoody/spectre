@@ -42,10 +42,10 @@ jobs:
           key: ${{runner.os}}-cargo-${{hashFiles('**/Cargo.lock')}}
 
       - name: Build utils
-        run: cargo build -p spectre-utils --release
+        run: cargo build -p spectre-cli --release
 
       - name: Download chrome
-        run: target/release/spectre-utils.exe download chrome
+        run: target/release/spectre-cli.exe download chrome
       
       - name: Run tests
         run: cargo test --no-fail-fast

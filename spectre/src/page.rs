@@ -1,9 +1,9 @@
-use std::time::Duration;
-
 use crate::{
     cdp::{CDPConnection, CDPMessage, CDPMethod, PageNavigateResponse, ScreenshotFormat}, Result
 };
 use serde_json::Value;
+
+// TODO impl Drop
 
 #[derive(Debug)]
 pub struct Page {
