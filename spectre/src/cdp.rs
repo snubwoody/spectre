@@ -216,8 +216,6 @@ impl CDPConnection {
 						return Ok(response);
 					}
 					Err(err) => {
-						dbg!(&message);
-						dbg!(&err);
 						let response: CDPError = serde_json::from_str(&message)?;
 						return Err(response.into());
 					}
