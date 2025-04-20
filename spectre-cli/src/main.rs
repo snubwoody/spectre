@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand, ValueEnum};
-pub use spectre::Error;
+pub use spectre_core::Error;
 use std::io::Cursor;
 
 #[derive(Debug, Parser)]
@@ -53,7 +53,7 @@ async fn download_chrome() -> Result<(), Error> {
 }
 
 #[tokio::main]
-async fn main() -> spectre::Result<()> {
+async fn main() -> Result<(),Error> {
     let args = Args::parse();
     match args.command {
         Command::Download { browser } => match browser {

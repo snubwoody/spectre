@@ -1,4 +1,3 @@
-//! Browser automation and testing library.
 pub mod browser;
 pub mod cdp;
 mod error;

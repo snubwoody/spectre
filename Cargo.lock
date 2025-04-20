@@ -1990,7 +1990,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "spectre"
+name = "spectre-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "reqwest",
+ "spectre-core",
+ "tokio",
+ "zip",
+]
+
+[[package]]
+name = "spectre-core"
 version = "0.1.0"
 dependencies = [
  "futures-util",
@@ -2013,14 +2024,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "spectre-utils"
+name = "spectree"
 version = "0.1.0"
 dependencies = [
- "clap",
- "reqwest",
- "spectre",
- "tokio",
- "zip",
+ "spectre-core",
 ]
 
 [[package]]

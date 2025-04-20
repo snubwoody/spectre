@@ -1,6 +1,6 @@
-use spectre::browser::Browser;
-use spectre::Result;
-use spectre::page::Page;
+use spectre_core::browser::Browser;
+use spectre_core::Result;
+use spectre_core::page::Page;
 
 #[tokio::test]
 async fn navigate_page() -> Result<()>{
