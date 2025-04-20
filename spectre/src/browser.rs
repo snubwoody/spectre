@@ -9,6 +9,32 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
 
+/// An instance of a browser
+/// 
+/// # Example
+/// ```no_run
+/// use spectre::{Browser,Result};
+/// 
+/// #[tokio::main]
+/// async fn main() -> Result<()>{
+/// 	let browser = Browser::launch().await?;
+/// 	Ok(())
+/// }
+/// ```
+/// 
+/// The browser is automatically closed when dropped.
+/// 
+/// ```ignore
+/// use spectre::Browser;
+/// 
+/// impl Drop for Browser{
+/// 	fn drop(&mut self){
+/// 		self.proccess
+/// 			.kill()
+/// 			.expect("Failed to close browser");
+/// 	}
+/// }
+/// ```
 pub struct Browser {
     process: Child,
     conn: CDPConnection,
@@ -18,6 +44,7 @@ pub struct Browser {
 }
 
 impl Browser {
+	/// Launch a new browser
     pub async fn launch() -> Result<Self> {
         // Get any available port
         let listener = std::net::TcpListener::bind("0.0.0.0:0")?;
