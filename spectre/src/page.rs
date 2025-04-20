@@ -1,6 +1,5 @@
 use crate::{
-    Result,
-    cdp::{CDPConnection, CDPMessage, ScreenshotFormat},
+    cdp::{CDPConnection, CDPMessage, PageNavigateResponse, ScreenshotFormat}, Result
 };
 use serde_json::Value;
 
@@ -22,6 +21,13 @@ impl Page {
     pub fn session_id(&self) -> &str {
         &self.session_id
     }
+
+	pub async fn navigate(&mut self) -> Result<()>{
+		let message = CDPMessage::navigate(2, &self.session_id, "https://youtube.com");
+		let response: PageNavigateResponse = self.conn.send(message).await?;
+		dbg!(response);
+		Ok(())
+	}
 
     pub async fn screenshot(&mut self) -> Result<()> {
         let message = CDPMessage::screenshot(1, &self.session_id, ScreenshotFormat::Png);
