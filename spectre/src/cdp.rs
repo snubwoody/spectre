@@ -164,6 +164,20 @@ impl Target {
     }
 }
 
+#[derive(Debug,Deserialize)]
+#[serde(rename_all="camelCase")]
+pub struct WebSocketTarget{
+	pub id: String,
+	pub url: String,
+	pub title: String,
+	pub description: String,
+	pub devtools_frontend_url: String,
+	#[serde(rename="type")]
+	pub target_type: TargetType,
+	#[serde(rename="webSocketDebuggerUrl")]
+	pub endpoint: String,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum TargetType {

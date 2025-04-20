@@ -1,5 +1,7 @@
+use std::time::Duration;
+
 use crate::{
-    cdp::{CDPConnection, CDPMessage, PageNavigateResponse, ScreenshotFormat}, Result
+    cdp::{CDPConnection, CDPMessage, CDPMethod, PageNavigateResponse, ScreenshotFormat}, Result
 };
 use serde_json::Value;
 
@@ -23,7 +25,9 @@ impl Page {
     }
 
 	pub async fn navigate(&mut self) -> Result<()>{
-		let message = CDPMessage::navigate(2, &self.session_id, "https://youtube.com");
+		let method = CDPMethod::Navigate { url: String::from("https://youtube.com") };
+		let message = CDPMessage::root(2, method);
+		dbg!(&message);
 		let response: PageNavigateResponse = self.conn.send(message).await?;
 		dbg!(response);
 		Ok(())

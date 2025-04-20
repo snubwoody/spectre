@@ -9,6 +9,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("Failed to send web socket message")]
     FailedToSendMessage,
+    #[error("Failed to create new page")]
+	FailedToCreatePage,
     #[error("{0}")]
 	NavigationError(String),
 

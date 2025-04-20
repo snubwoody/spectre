@@ -1,4 +1,6 @@
+use crate::cdp::WebSocketTarget;
 use crate::page::Page;
+use crate::Error;
 use crate::{
     Result,
     cdp::{
@@ -6,7 +8,9 @@ use crate::{
         GetTargetResponse, Target,
     },
 };
+use reqwest::{Client, Method, Request};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::process::{Child, Command, Stdio};
 
 /// An instance of a browser
@@ -41,6 +45,7 @@ pub struct Browser {
     /// The local network address of chrome
     url: String,
     message_id: i32,
+	port: u16
 }
 
 impl Browser {
@@ -79,6 +84,7 @@ impl Browser {
             conn,
             url: ws_url,
             message_id: 0,
+			port
         })
     }
 
@@ -97,23 +103,13 @@ impl Browser {
     }
 
     pub async fn goto(&mut self, url: &str) -> Result<Page> {
-        let method = CDPMethod::CreateTarget {
-            url: String::from(url),
-        };
-        let message = CDPMessage::root(self.message_id, method);
-        let response: CreateTargetResponse = self.conn.send(message).await?;
-        self.message_id += 1;
+		let client = Client::new();
+		let resp = client.put(format!("http://localhost:{}/json/new?{}",self.port,url))
+			.send()
+			.await?;
 
-        let method = CDPMethod::AttachToTarget {
-            target_id: response.body().target_id,
-            flatten: true,
-        };
-        let message = CDPMessage::root(self.message_id, method);
-        let response: AttachToTargetResponse = self.conn.send(message).await?;
-        self.message_id += 1;
-
-        let page = Page::new(&response.body().session_id, &self.url).await?;
-
+		let body:WebSocketTarget = resp.json().await?;
+		let page = Page::new("", &body.endpoint).await?;
         Ok(page)
     }
 }
