@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = [ "spectre-utils","spectre"]
+members = [ "spectre-utils","spectre", "spectre-macros"]
 
 [workspace.dependencies]
 futures-util = "0.3.31"
