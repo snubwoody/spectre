@@ -1,8 +1,8 @@
-use serde_json::{Number, Value, json};
+use serde_json::json;
 use spectre_core::{
     EMPTY_PAGE, Error, Result,
     browser::Browser,
-    cdp::{CDPConnection, CDPMethod, GetTargetResponse, runtime::EvaluateResponse},
+    cdp::{CDPConnection, CDPMethod, GetTargetResponse},
 };
 
 #[tokio::test]

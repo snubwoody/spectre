@@ -130,7 +130,7 @@ impl<'conn> CDPSession<'conn> {
 
                 Err(error)
             }
-            None => return Ok(response),
+            None => Ok(response),
         }
     }
 
