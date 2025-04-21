@@ -5,7 +5,7 @@ use std::fmt::Debug;
 
 pub type EvaluateResponse = CDPResponse<EvaluateBody>;
 
-#[derive(Debug, Deserialize,Clone)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct EvaluateBody {
     pub result: RemoteObject,
     #[serde(rename = "exceptionDetails")]
@@ -25,7 +25,7 @@ pub struct ExceptionDetails {
 /// Mirror object referencing the original javascript object
 ///
 /// Corresponds to [`Runtime.RemoteObject`](https://vanilla.aslushnikov.com/?Runtime.RemoteObject)
-#[derive(Debug, Serialize, Deserialize,Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RemoteObject {
     #[serde(rename = "type")]

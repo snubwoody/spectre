@@ -101,36 +101,37 @@ impl<'conn> CDPSession<'conn> {
 
     /// Evaluate javascript in the browser
     pub async fn evaluate(&mut self, expr: &str) -> Result<EvaluateResponse> {
-        let response: EvaluateResponse = self.send(CDPMethod::Evaluate {
-            expression: expr.to_string(),
-            await_promise: true,
-        })
-        .await?;
+        let response: EvaluateResponse = self
+            .send(CDPMethod::Evaluate {
+                expression: expr.to_string(),
+                await_promise: true,
+            })
+            .await?;
 
-		let body = response.body();
+        let body = response.body();
 
-		match body.exception_details {
-			Some(details) => {
-				let ExceptionDetails{
-					line_number,
-					column_number,
-					..
-				} = details;
+        match body.exception_details {
+            Some(details) => {
+                let ExceptionDetails {
+                    line_number,
+                    column_number,
+                    ..
+                } = details;
 
-				let value = body.result.value;
-				let description = body.result.description;
+                let value = body.result.value;
+                let description = body.result.description;
 
-				let error = Error::RuntimeError { 
-					line_number, 
-					column_number, 
-					value, 
-					description
-				};
+                let error = Error::RuntimeError {
+                    line_number,
+                    column_number,
+                    value,
+                    description,
+                };
 
-				Err(error)
-			},
-			None => return  Ok(response)
-		}
+                Err(error)
+            }
+            None => return Ok(response),
+        }
     }
 
     pub async fn send<T>(&mut self, method: CDPMethod) -> Result<T>

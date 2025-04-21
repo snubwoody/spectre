@@ -135,15 +135,16 @@ pub type PageNavigateResponse = CDPResponse<PageNavigateBody>;
 pub type GetDocumentResponse = CDPResponse<GetDocumentBody>;
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct CDPResponse<T:Clone> {
+pub struct CDPResponse<T: Clone> {
     id: i32,
     #[serde(rename = "sessionId")]
     session_id: Option<String>,
     result: T,
 }
 
-impl<T> CDPResponse<T> 
-where T: Clone
+impl<T> CDPResponse<T>
+where
+    T: Clone,
 {
     pub fn id(&self) -> i32 {
         self.id
@@ -154,30 +155,30 @@ where T: Clone
     }
 }
 
-#[derive(Debug, Serialize, Deserialize,Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateTargetBody {
     pub target_id: String,
 }
 
-#[derive(Debug, Serialize, Deserialize,Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GetTargetBody {
     #[serde(rename = "targetInfos")]
     pub targets: Vec<Target>,
 }
 
-#[derive(Debug, Serialize, Deserialize,Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AttachToTargetBody {
     pub session_id: String,
 }
 
-#[derive(Debug, Serialize, Deserialize,Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GetDocumentBody {
     pub root: DomNode,
 }
 
-#[derive(Debug, Serialize, Deserialize,Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PageNavigateBody {
     pub frame_id: String,
