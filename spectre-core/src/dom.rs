@@ -14,7 +14,7 @@ pub struct DomNode{
 	pub children: Vec<Box<DomNode>>
 }
 
-#[derive(Debug,Serialize,Deserialize,Clone, Copy,PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug,Serialize,Deserialize,Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all="UPPERCASE")]
 pub enum NodeName {
 	/// The root document
@@ -41,5 +41,59 @@ pub enum NodeName {
 	#[serde(alias="html")]
 	Html,
 	Body, 
-	Head
+	Head,
+	Script, 
+	Link,
+	// FIXME also broken
+	#[serde(alias="svg")]
+	Svg,
+	Abbr,
+	Area,
+	Article,
+	Aside,
+	Audio,
+	B,
+	Base,
+	Code,
+	Col,
+	Data,
+	DataList,
+	Form,
+	Input, 
+	Label,
+	Button,
+	Iframe,
+	Li,
+	Ul,
+	Ol,
+	Main,
+	Menu,
+	Header,
+	#[serde(alias="path")]
+	Path,
+	NoScript,
+	#[serde(alias="image")]
+	Image,
+	Nav,
+	Select,
+	Search,
+	Section,
+	Span,
+	Table,
+	Dialog,
+	TextArea,
+	Hr,
+	#[serde(alias="rect")]
+	Rect,
+	Track,
+	Video,
+	Tr,
+	Center,
+	#[serde(alias="g")]
+	G,
+	#[serde(alias="circle")]
+	Circle,
+	// Any unknown or custom elements
+	#[serde(untagged)]
+	Unknown(String)
 }
