@@ -1,10 +1,8 @@
 use crate::{
-    Result,
     cdp::{
         CDPConnection, CDPMessage, CDPMethod, GetDocumentResponse, PageNavigateResponse,
         ScreenshotFormat,
-    },
-    dom::DomNode,
+    }, dom::{DomNode, NodeName}, Result
 };
 use serde_json::Value;
 
@@ -40,15 +38,28 @@ impl Page {
         let method = CDPMethod::GetDocument { depth: -1 };
         let message = CDPMessage::root(1, method);
         let response: GetDocumentResponse = self.conn.send(message).await?;
+		let root = response.body().root;
 
-        Ok(response.body().root)
+        Ok(root)
     }
 
-    pub async fn get_by_name(&mut self) -> Result<()> {
+	/// Get an element by it's name.
+	/// 
+	/// # Example
+	/// ```no_run
+	/// use spectre::{Result,Page,dom::NodeName};
+	/// 
+	/// #[tokio::main]
+	/// async fn main -> Result<()>{
+	/// 	let page = Page::new("","");
+	/// 	let root = page.get_by_name(NodeName::Document);
+	/// 	
+	/// 	Ok(())
+	/// }
+	/// ```
+    pub async fn get_by_name(&mut self,name: NodeName) -> Result<Option<DomNode>> {
         let root = self.get_dom().await?;
-        dbg!(root);
-
-        Ok(())
+        Ok(root.get_by_name(&name))
     }
 
     pub async fn navigate(&mut self) -> Result<()> {

@@ -1,3 +1,4 @@
+use spectre_core::dom::NodeName;
 use spectre_core::Result;
 use spectre_core::browser::Browser;
 
@@ -5,7 +6,9 @@ use spectre_core::browser::Browser;
 async fn get_by_name() -> Result<()> {
     let mut browser = Browser::launch().await?;
     let mut page = browser.goto("https://google.com").await?;
-    page.get_by_name().await?;
+    
+	let root = page.get_by_name(NodeName::Document).await?;
+	assert!(root.is_some());
 
     Ok(())
 }

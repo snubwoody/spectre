@@ -13,6 +13,23 @@ pub struct DomNode {
     pub children: Vec<Box<DomNode>>,
 }
 
+impl DomNode{
+	/// Returns the first [`DomNode`] that matches the name
+	pub fn get_by_name(&self,name: &NodeName) -> Option<Self>{
+		if &self.node_name == name {
+			return Some(self.clone())
+		}
+
+		for child in &self.children{
+			if child.get_by_name(name).is_some(){
+				return Some(*child.clone());
+			}
+		}
+
+		None
+	}
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum NodeName {
