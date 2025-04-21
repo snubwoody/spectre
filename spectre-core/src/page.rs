@@ -9,6 +9,8 @@ use serde_json::Value;
 pub struct Page {
     session_id: String,
     conn: CDPConnection,
+	endpoint: String,
+
 }
 
 impl Page {
@@ -17,7 +19,12 @@ impl Page {
         Ok(Page {
             session_id: String::from(session_id),
             conn,
+			endpoint: String::from(url)
         })
+    }
+
+    pub fn endpoint(&self) -> &str {
+        &self.endpoint
     }
 
     pub fn session_id(&self) -> &str {

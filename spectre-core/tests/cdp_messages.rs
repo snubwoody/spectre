@@ -3,8 +3,8 @@
 use serde_json::Value;
 use spectre_core::{
     browser::Browser, cdp::{
-        AttachToTargetBody, AttachToTargetResponse, CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse, GetTargetResponse, PageNavigateResponse
-    }, Result
+        AttachToTargetResponse, CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse, GetDocumentResponse, GetTargetResponse, PageNavigateResponse
+    }, dom::NodeName, Result
 };
 
 #[tokio::test]
@@ -71,7 +71,25 @@ async fn page_navigate() -> Result<()> {
 
 	let message = CDPMessage::navigate(2, &session_id, "https://youtube.com");
 	let _: PageNavigateResponse = conn.send(message).await?;
-    
+	
+	Ok(())
+}
+
+#[tokio::test]
+async fn get_document() -> Result<()> {
+    let mut browser = Browser::launch().await?;
+	let page = browser.goto("https://example.com").await?;
+
+	let url = page.endpoint();
+    let mut conn = CDPConnection::root(url).await?;
+
+	// Set to -1 to get the whole tree
+	let method = CDPMethod::GetDocument{depth: -1};
+	let message = CDPMessage::root(2, method);
+	let response: GetDocumentResponse = conn.send(message).await?;
+	
+	assert_eq!(response.body().root.node_name,NodeName::Document);
+
 	Ok(())
 }
 

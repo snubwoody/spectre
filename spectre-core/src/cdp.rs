@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use crate::dom::DomNode;
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -81,8 +82,18 @@ pub enum CDPMethod {
     AttachToTarget { target_id: String, flatten: bool },
     #[serde(rename = "Page.captureScreenshot")]
     Screenshot { format: ScreenshotFormat },
+	/// Navigates the current page to the given url.
+	/// 
+	/// Corresponds to [`Page.navigate`](https://vanilla.aslushnikov.com/?Page.navigate)
     #[serde(rename = "Page.navigate")]
     Navigate { url: String },
+	/// Returns the root DOM node.
+	/// 
+	/// Corresponds to [`DOM.getDocument`](https://vanilla.aslushnikov.com/?DOM.getDocument)
+    #[serde(rename = "DOM.getDocument")]
+    GetDocument{
+		depth: i32
+	},
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -97,6 +108,7 @@ pub type GetTargetResponse = CDPResponse<GetTargetBody>;
 pub type CreateTargetResponse = CDPResponse<CreateTargetBody>;
 pub type AttachToTargetResponse = CDPResponse<AttachToTargetBody>;
 pub type PageNavigateResponse = CDPResponse<PageNavigateBody>;
+pub type GetDocumentResponse = CDPResponse<GetDocumentBody>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CDPResponse<T> {
@@ -132,6 +144,11 @@ pub struct GetTargetBody {
 #[serde(rename_all = "camelCase")]
 pub struct AttachToTargetBody {
 	pub session_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GetDocumentBody {
+	pub root: DomNode,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -230,8 +247,13 @@ impl CDPConnection {
 						return Ok(response);
 					}
 					Err(err) => {
-						let response: CDPError = serde_json::from_str(&message)?;
-						return Err(response.into());
+						match serde_json::from_str::<CDPError>(&message) {
+							Ok(cdp_err) => return Err(cdp_err.into()),
+							Err(_) => {
+								let error = Error::InvalidResponse(format!("{}",err));
+								return Err(error)
+							}
+						}
 					}
 				}
 			}

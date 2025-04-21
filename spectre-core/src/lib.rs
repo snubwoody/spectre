@@ -1,5 +1,6 @@
 pub mod browser;
 pub mod cdp;
+pub mod dom;
 mod error;
 pub mod page;
 pub use error::{Error, Result};
