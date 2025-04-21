@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::io;
 use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-// FIXME parse custom errors
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Failed to send web socket message")]
@@ -15,10 +15,20 @@ pub enum Error {
     InvalidResponse(String),
     #[error("{0}")]
     NavigationError(String),
+    /// An error that occured while evaluating javascript
+	/// in browser
+	#[error("Uncaught expection: {description}")]
+	RuntimeError{
+		line_number: i32,
+		column_number: i32,
+		value: Option<Value>,
+		description: String
+	},
 
     #[error("CDP Error: {message}")]
     CDPError { code: i32, message: String },
 
+	// Third party errors
     #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
     #[error(transparent)]
