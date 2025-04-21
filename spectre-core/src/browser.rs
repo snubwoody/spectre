@@ -12,7 +12,7 @@ use std::process::{Child, Command, Stdio};
 ///
 /// # Example
 /// ```no_run
-/// use spectre::{Browser,Result};
+/// use spectre_core::{Browser,Result};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()>{
@@ -24,7 +24,7 @@ use std::process::{Child, Command, Stdio};
 /// The browser is automatically closed when dropped.
 ///
 /// ```ignore
-/// use spectre::Browser;
+/// use spectre_core::Browser;
 ///
 /// impl Drop for Browser{
 ///     fn drop(&mut self){
