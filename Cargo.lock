@@ -1990,6 +1990,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "spectre"
+version = "0.1.0"
+dependencies = [
+ "spectre-core",
+ "spectre-macros",
+ "tokio",
+]
+
+[[package]]
 name = "spectre-cli"
 version = "0.1.0"
 dependencies = [
@@ -2019,15 +2028,10 @@ dependencies = [
 name = "spectre-macros"
 version = "0.1.0"
 dependencies = [
+ "proc-macro2",
  "quote",
- "syn",
-]
-
-[[package]]
-name = "spectree"
-version = "0.1.0"
-dependencies = [
  "spectre-core",
+ "syn",
 ]
 
 [[package]]

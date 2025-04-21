@@ -1,7 +1,9 @@
 [package]
-name = "spectree"
+name = "spectre"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 spectre-core = {path = "../spectre-core"}
+spectre-macros = {path = "../spectre-macros"}
+tokio = {workspace = true}
