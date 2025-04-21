@@ -12,5 +12,6 @@ serde_json = {workspace = true}
 futures-util = {workspace = true}
 reqwest = {workspace = true}
 tokio-tungstenite = {workspace = true}
+rand = {workspace = true}
 image = "0.25.6"
 
