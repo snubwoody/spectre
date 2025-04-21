@@ -1,3 +1,4 @@
+use super::{AttachToTargetResponse, CDPMessage, CDPMethod, GetTargetResponse};
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
 use rand::rng;
@@ -7,7 +8,6 @@ use std::fmt::Debug;
 use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
-use super::{AttachToTargetResponse, CDPMessage, CDPMethod, GetTargetResponse};
 
 /// A raw connection to the Chrome Devtool protocol.
 #[derive(Debug)]
@@ -21,34 +21,32 @@ impl CDPConnection {
         Ok(Self { stream })
     }
 
-	pub async fn create_session(&mut self) -> Result<CDPSession>{
-		let response: GetTargetResponse = self.send(CDPMessage::get_targets(1)).await?;
-		let targets = response.body().targets;
-	
-		let method = CDPMethod::AttachToTarget {
-			target_id: targets[0].target_id.clone(),
-			flatten: true,
-		};
-		let message = CDPMessage::root(1, method);
-		let response: AttachToTargetResponse = self.send(message).await?;
-		let session_id = response.body().session_id;
-		
-		let session = CDPSession::new(self, &session_id);
-		Ok(session)
-	}
+    pub async fn create_session(&mut self) -> Result<CDPSession> {
+        let response: GetTargetResponse = self.send(CDPMessage::get_targets(1)).await?;
+        let targets = response.body().targets;
+
+        let method = CDPMethod::AttachToTarget {
+            target_id: targets[0].target_id.clone(),
+            flatten: true,
+        };
+        let message = CDPMessage::root(1, method);
+        let response: AttachToTargetResponse = self.send(message).await?;
+        let session_id = response.body().session_id;
+
+        let session = CDPSession::new(self, &session_id);
+        Ok(session)
+    }
 
     /// Connect to the root web socket i.e the browser
     pub async fn root(url: &str) -> Result<Self> {
         let (stream, _) = connect_async(url).await?;
-        Ok(Self {
-            stream,
-        })
+        Ok(Self { stream })
     }
 
     /// Send a message
     pub async fn send<T>(&mut self, message: CDPMessage) -> Result<T>
     where
-        T: DeserializeOwned
+        T: DeserializeOwned,
     {
         let msg: Message = Message::Text(message.json()?.to_string().into());
         self.stream.send(msg).await?;
@@ -78,25 +76,26 @@ impl CDPConnection {
 }
 
 #[derive(Debug)]
-pub struct CDPSession<'conn>{
-	conn: &'conn mut CDPConnection,
-	session_id: String
+pub struct CDPSession<'conn> {
+    conn: &'conn mut CDPConnection,
+    session_id: String,
 }
 
-impl<'conn> CDPSession<'conn>{
-	fn new(conn: &'conn mut CDPConnection, session_id: &str) -> Self{
-		Self { 
-			conn, 
-			session_id: session_id.to_string()
-		}
-	}
+impl<'conn> CDPSession<'conn> {
+    fn new(conn: &'conn mut CDPConnection, session_id: &str) -> Self {
+        Self {
+            conn,
+            session_id: session_id.to_string(),
+        }
+    }
 
-	pub async fn send<T>(&mut self,method: CDPMethod) -> Result<T>
-	where T: DeserializeOwned
-	{
-		let id: i32 = rand::random();
-		let message = CDPMessage::new(id, &self.session_id, method);
-		let response:T = self.conn.send(message).await?;
-		Ok(response)
-	} 
+    pub async fn send<T>(&mut self, method: CDPMethod) -> Result<T>
+    where
+        T: DeserializeOwned,
+    {
+        let id: i32 = rand::random();
+        let message = CDPMessage::new(id, &self.session_id, method);
+        let response: T = self.conn.send(message).await?;
+        Ok(response)
+    }
 }

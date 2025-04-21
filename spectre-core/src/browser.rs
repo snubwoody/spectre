@@ -2,10 +2,7 @@ use crate::cdp::WebSocketTarget;
 use crate::page::Page;
 use crate::{
     Result,
-    cdp::{
-        CDPConnection, CDPMessage, CDPMethod,
-        GetTargetResponse, Target,
-    },
+    cdp::{CDPConnection, CDPMessage, CDPMethod, GetTargetResponse, Target},
 };
 use reqwest::Client;
 use serde::{Deserialize, Serialize};

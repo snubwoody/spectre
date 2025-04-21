@@ -1,10 +1,10 @@
 mod connection;
-use crate::dom::DomNode;
 use crate::Result;
+use crate::dom::DomNode;
+pub use connection::CDPConnection;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fmt::Debug;
-pub use connection::CDPConnection;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -63,15 +63,15 @@ impl CDPMessage {
         }
     }
 
-	/// Evaluate JS in the browser.
+    /// Evaluate JS in the browser.
     pub fn evaluate(id: i32, session_id: &str, expression: &str) -> Self {
         Self {
             id,
             session_id: Some(session_id.to_string()),
-            method: CDPMethod::Evaluate { 
-				expression: expression.to_string(), 
-				await_promise: true 
-			},
+            method: CDPMethod::Evaluate {
+                expression: expression.to_string(),
+                await_promise: true,
+            },
         }
     }
 
@@ -109,14 +109,14 @@ pub enum CDPMethod {
     /// Corresponds to [`Runtime.evaluate`](https://vanilla.aslushnikov.com/?Runtime.evaluate)
     #[serde(rename = "Runtime.evaluate")]
     #[serde(rename_all = "camelCase")]
-	Evaluate{
-		/// The expression to evaluate
-		expression: String,
-		/// Where execution should await the expression and 
-		/// return the awaited value once the promise is
-		/// resolved.
-		await_promise: bool
-	}
+    Evaluate {
+        /// The expression to evaluate
+        expression: String,
+        /// Where execution should await the expression and
+        /// return the awaited value once the promise is
+        /// resolved.
+        await_promise: bool,
+    },
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -229,8 +229,6 @@ pub enum TargetType {
     Browser,
     WebView,
 }
-
-
 
 #[cfg(test)]
 mod tests {

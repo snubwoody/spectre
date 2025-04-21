@@ -126,7 +126,7 @@ async fn runtime_evaluate() -> Result<()> {
     let browser = Browser::launch().await?;
     let mut conn = CDPConnection::root(browser.url()).await?;
 
-	let response: GetTargetResponse = conn.send(CDPMessage::get_targets(1)).await?;
+    let response: GetTargetResponse = conn.send(CDPMessage::get_targets(1)).await?;
     let targets = response.body().targets;
 
     let method = CDPMethod::AttachToTarget {
@@ -137,20 +137,22 @@ async fn runtime_evaluate() -> Result<()> {
     let response: AttachToTargetResponse = conn.send(message).await?;
     let session_id = response.body().session_id;
 
-	let method = CDPMethod::Evaluate { 
-		expression: String::from("
+    let method = CDPMethod::Evaluate {
+        expression: String::from(
+            "
 			function hi(){
 				return 4;
 			}
 
 			hi()
-		"), 
-		await_promise: true 
-	};
+		",
+        ),
+        await_promise: true,
+    };
 
-	let message = CDPMessage::new(1,&session_id, method);
+    let message = CDPMessage::new(1, &session_id, method);
     let response: Value = conn.send(message).await?;
-	dbg!(&response);
+    dbg!(&response);
 
-	Ok(())
+    Ok(())
 }
