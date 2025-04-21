@@ -1,7 +1,6 @@
 use super::{AttachToTargetResponse, CDPMessage, CDPMethod, GetTargetResponse};
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
-use rand::rng;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::fmt::Debug;

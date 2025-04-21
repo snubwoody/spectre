@@ -16,8 +16,8 @@ use std::process::{Child, Command, Stdio};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()>{
-/// 	let browser = Browser::launch().await?;
-/// 	Ok(())
+///     let browser = Browser::launch().await?;
+///     Ok(())
 /// }
 /// ```
 ///
@@ -27,11 +27,11 @@ use std::process::{Child, Command, Stdio};
 /// use spectre::Browser;
 ///
 /// impl Drop for Browser{
-/// 	fn drop(&mut self){
-/// 		self.proccess
-/// 			.kill()
-/// 			.expect("Failed to close browser");
-/// 	}
+///     fn drop(&mut self){
+///         self.proccess
+///             .kill()
+///             .expect("Failed to close browser");
+///     }
 /// }
 /// ```
 pub struct Browser {
