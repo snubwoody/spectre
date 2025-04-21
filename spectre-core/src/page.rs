@@ -19,7 +19,7 @@ pub struct Page {
 
 impl Page {
     pub async fn new(session_id: &str, url: &str) -> Result<Self> {
-        let conn = CDPConnection::new(url, Some(session_id.to_string())).await?;
+        let conn = CDPConnection::new(url).await?;
         Ok(Page {
             session_id: String::from(session_id),
             conn,
@@ -78,8 +78,7 @@ impl Page {
     pub async fn screenshot(&mut self) -> Result<()> {
         let message = CDPMessage::screenshot(1, &self.session_id, ScreenshotFormat::Png);
 
-        let response = self.conn.send::<Value>(message).await;
-        dbg!(response);
+        let _ = self.conn.send::<Value>(message).await;
         Ok(())
     }
 }

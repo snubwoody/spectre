@@ -210,14 +210,12 @@ pub enum TargetType {
 #[derive(Debug)]
 pub struct CDPConnection {
     stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
-    // Empty for the root session
-    session_id: Option<String>,
 }
 
 impl CDPConnection {
-    pub async fn new(url: &str, session_id: Option<String>) -> Result<Self> {
+    pub async fn new(url: &str,) -> Result<Self> {
         let (stream, _) = connect_async(url).await?;
-        Ok(Self { stream, session_id })
+        Ok(Self { stream })
     }
 
     /// Connect to the root web socket i.e the browser
@@ -225,7 +223,6 @@ impl CDPConnection {
         let (stream, _) = connect_async(url).await?;
         Ok(Self {
             stream,
-            session_id: None,
         })
     }
 
@@ -241,7 +238,7 @@ impl CDPConnection {
             let json: Value = serde_json::from_str(message.as_str())?;
             // Filter out events and only return
             // responses
-            if let Some(_) = json.get("id") {
+            if json.get("id").is_some() {
                 match serde_json::from_str(message.as_ref()) {
                     Ok(response) => {
                         return Ok(response);
@@ -271,7 +268,7 @@ mod tests {
         let browser = Browser::launch().await?;
         let ws_url = browser.url();
 
-        let mut conn = CDPConnection::new(ws_url, None).await?;
+        let mut conn = CDPConnection::new(ws_url).await?;
         let message = CDPMessage::root(2, CDPMethod::GetTargets);
         let _: GetTargetResponse = conn.send(message).await?;
 
@@ -283,8 +280,8 @@ mod tests {
         let browser = Browser::launch().await?;
         let ws_url = browser.url();
 
-        let mut conn1 = CDPConnection::new(ws_url, None).await?;
-        let mut conn2 = CDPConnection::new(ws_url, None).await?;
+        let mut conn1 = CDPConnection::new(ws_url).await?;
+        let mut conn2 = CDPConnection::new(ws_url).await?;
 
         let _: GetTargetResponse = conn1
             .send(CDPMessage::root(2, CDPMethod::GetTargets))

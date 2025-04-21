@@ -1,16 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use spectre_core::Browser;
-use std::cell::OnceCell;
 use syn::ItemFn;
-
-// static BROWSER: OnceCell<Browser> = OnceCell::new();
-
-// async fn get_or_init_browser(){
-// 	let k = BROWSER.get_or_init(||async{
-// 		Browser::launch().await.unwrap()
-// 	});
-// }
 
 /// Create a page for every test using one browser
 ///
@@ -30,14 +20,9 @@ pub fn test(_: TokenStream, input: TokenStream) -> TokenStream {
     let block = &input_fn.block;
     let ident = &sig.ident;
 
-    dbg!(vis);
-    dbg!(sig);
-    dbg!(attrs);
-    dbg!(block);
-
-    if !sig.asyncness.is_some() {
+    if sig.asyncness.is_none() {
         return syn::Error::new_spanned(
-            &sig.fn_token,
+            sig.fn_token,
             "the `async` keyword is missing from the function declaration",
         )
         .to_compile_error()
@@ -48,7 +33,6 @@ pub fn test(_: TokenStream, input: TokenStream) -> TokenStream {
         #[tokio::test]
         #(#attrs)*
         #vis async fn #ident(){
-            let mut browser = spectre::Browser::launch().await.unwrap();
             #block
         }
     }
