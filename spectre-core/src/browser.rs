@@ -1,16 +1,14 @@
-use crate::Error;
 use crate::cdp::WebSocketTarget;
 use crate::page::Page;
 use crate::{
     Result,
     cdp::{
-        AttachToTargetResponse, CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse,
+        CDPConnection, CDPMessage, CDPMethod,
         GetTargetResponse, Target,
     },
 };
-use reqwest::{Client, Method, Request};
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::process::{Child, Command, Stdio};
 
 /// An instance of a browser
