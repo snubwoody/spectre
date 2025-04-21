@@ -1,5 +1,7 @@
 use super::runtime::EvaluateResponse;
-use super::{AttachToTargetResponse, CDPMessage, CDPMethod, GetTargetResponse, PageNavigateResponse};
+use super::{
+    AttachToTargetResponse, CDPMessage, CDPMethod, GetTargetResponse, PageNavigateResponse,
+};
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
 use serde::de::DeserializeOwned;
@@ -89,22 +91,22 @@ impl<'conn> CDPSession<'conn> {
         }
     }
 
-	/// Navitate the page to a url
-	pub async fn navigate(&mut self,url: &str) -> Result<PageNavigateResponse>{
-		self.send(
-			CDPMethod::Navigate { url: url.to_string() }
-		).await
-	}
+    /// Navitate the page to a url
+    pub async fn navigate(&mut self, url: &str) -> Result<PageNavigateResponse> {
+        self.send(CDPMethod::Navigate {
+            url: url.to_string(),
+        })
+        .await
+    }
 
-	/// Evaluate javascript in the browser
-	pub async fn evaluate(&mut self,expr: &str) -> Result<Value>{
-		self.send(
-			CDPMethod::Evaluate { 
-				expression: expr.to_string(), 
-				await_promise:true 
-			}
-		).await
-	}
+    /// Evaluate javascript in the browser
+    pub async fn evaluate(&mut self, expr: &str) -> Result<Value> {
+        self.send(CDPMethod::Evaluate {
+            expression: expr.to_string(),
+            await_promise: true,
+        })
+        .await
+    }
 
     pub async fn send<T>(&mut self, method: CDPMethod) -> Result<T>
     where

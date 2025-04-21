@@ -172,7 +172,7 @@ pub struct AttachToTargetBody {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GetDocumentBody {
-	pub root: DomNode,
+    pub root: DomNode,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -182,8 +182,6 @@ pub struct PageNavigateBody {
     pub loader_id: String,
     pub error_text: Option<String>,
 }
-
-
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
