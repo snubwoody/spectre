@@ -1,5 +1,6 @@
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
+use rand::rng;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::fmt::Debug;
@@ -47,7 +48,7 @@ impl CDPConnection {
     /// Send a message
     pub async fn send<T>(&mut self, message: CDPMessage) -> Result<T>
     where
-        T: DeserializeOwned + Debug,
+        T: DeserializeOwned
     {
         let msg: Message = Message::Text(message.json()?.to_string().into());
         self.stream.send(msg).await?;
@@ -89,4 +90,13 @@ impl<'conn> CDPSession<'conn>{
 			session_id: session_id.to_string()
 		}
 	}
+
+	pub async fn send<T>(&mut self,method: CDPMethod) -> Result<T>
+	where T: DeserializeOwned
+	{
+		let id: i32 = rand::random();
+		let message = CDPMessage::new(id, &self.session_id, method);
+		let response:T = self.conn.send(message).await?;
+		Ok(response)
+	} 
 }
