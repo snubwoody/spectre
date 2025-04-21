@@ -1,6 +1,6 @@
+use crate::Error;
 use crate::cdp::WebSocketTarget;
 use crate::page::Page;
-use crate::Error;
 use crate::{
     Result,
     cdp::{
@@ -14,23 +14,23 @@ use serde_json::Value;
 use std::process::{Child, Command, Stdio};
 
 /// An instance of a browser
-/// 
+///
 /// # Example
 /// ```no_run
 /// use spectre::{Browser,Result};
-/// 
+///
 /// #[tokio::main]
 /// async fn main() -> Result<()>{
 /// 	let browser = Browser::launch().await?;
 /// 	Ok(())
 /// }
 /// ```
-/// 
+///
 /// The browser is automatically closed when dropped.
-/// 
+///
 /// ```ignore
 /// use spectre::Browser;
-/// 
+///
 /// impl Drop for Browser{
 /// 	fn drop(&mut self){
 /// 		self.proccess
@@ -45,11 +45,11 @@ pub struct Browser {
     /// The local network address of chrome
     url: String,
     message_id: i32,
-	port: u16
+    port: u16,
 }
 
 impl Browser {
-	/// Launch a new browser
+    /// Launch a new browser
     pub async fn launch() -> Result<Self> {
         // Get any available port
         let listener = std::net::TcpListener::bind("0.0.0.0:0")?;
@@ -84,7 +84,7 @@ impl Browser {
             conn,
             url: ws_url,
             message_id: 0,
-			port
+            port,
         })
     }
 
@@ -103,13 +103,14 @@ impl Browser {
     }
 
     pub async fn goto(&mut self, url: &str) -> Result<Page> {
-		let client = Client::new();
-		let resp = client.put(format!("http://localhost:{}/json/new?{}",self.port,url))
-			.send()
-			.await?;
+        let client = Client::new();
+        let resp = client
+            .put(format!("http://localhost:{}/json/new?{}", self.port, url))
+            .send()
+            .await?;
 
-		let body:WebSocketTarget = resp.json().await?;
-		let page = Page::new("", &body.endpoint).await?;
+        let body: WebSocketTarget = resp.json().await?;
+        let page = Page::new("", &body.endpoint).await?;
         Ok(page)
     }
 }

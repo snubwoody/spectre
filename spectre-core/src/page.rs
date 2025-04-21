@@ -1,5 +1,10 @@
 use crate::{
-    cdp::{CDPConnection, CDPMessage, CDPMethod, GetDocumentResponse, PageNavigateResponse, ScreenshotFormat}, dom::DomNode, Result
+    Result,
+    cdp::{
+        CDPConnection, CDPMessage, CDPMethod, GetDocumentResponse, PageNavigateResponse,
+        ScreenshotFormat,
+    },
+    dom::DomNode,
 };
 use serde_json::Value;
 
@@ -9,7 +14,7 @@ use serde_json::Value;
 pub struct Page {
     session_id: String,
     conn: CDPConnection,
-	endpoint: String,
+    endpoint: String,
 }
 
 impl Page {
@@ -18,7 +23,7 @@ impl Page {
         Ok(Page {
             session_id: String::from(session_id),
             conn,
-			endpoint: String::from(url)
+            endpoint: String::from(url),
         })
     }
 
@@ -30,30 +35,32 @@ impl Page {
         &self.session_id
     }
 
-	async fn get_dom(&mut self) -> Result<DomNode>{
-		// Set to -1 to get all sub nodes.
-		let method = CDPMethod::GetDocument { depth: -1 };
-		let message = CDPMessage::root(1, method);
-		let response: GetDocumentResponse = self.conn.send(message).await?;
-		
-		Ok(response.body().root)
-	}
+    async fn get_dom(&mut self) -> Result<DomNode> {
+        // Set to -1 to get all sub nodes.
+        let method = CDPMethod::GetDocument { depth: -1 };
+        let message = CDPMessage::root(1, method);
+        let response: GetDocumentResponse = self.conn.send(message).await?;
 
-	pub async fn get_by_name(&mut self) -> Result<()>{
-		let root = self.get_dom().await?;
-		dbg!(root);
-		
-		Ok(())
-	}
+        Ok(response.body().root)
+    }
 
-	pub async fn navigate(&mut self) -> Result<()>{
-		let method = CDPMethod::Navigate { url: String::from("https://youtube.com") };
-		let message = CDPMessage::root(2, method);
-		dbg!(&message);
-		let response: PageNavigateResponse = self.conn.send(message).await?;
-		dbg!(response);
-		Ok(())
-	}
+    pub async fn get_by_name(&mut self) -> Result<()> {
+        let root = self.get_dom().await?;
+        dbg!(root);
+
+        Ok(())
+    }
+
+    pub async fn navigate(&mut self) -> Result<()> {
+        let method = CDPMethod::Navigate {
+            url: String::from("https://youtube.com"),
+        };
+        let message = CDPMessage::root(2, method);
+        dbg!(&message);
+        let response: PageNavigateResponse = self.conn.send(message).await?;
+        dbg!(response);
+        Ok(())
+    }
 
     pub async fn screenshot(&mut self) -> Result<()> {
         let message = CDPMessage::screenshot(1, &self.session_id, ScreenshotFormat::Png);

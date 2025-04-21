@@ -10,11 +10,11 @@ pub enum Error {
     #[error("Failed to send web socket message")]
     FailedToSendMessage,
     #[error("Failed to create new page")]
-	FailedToCreatePage,
+    FailedToCreatePage,
     #[error("Failed to parse CDP response: {0}")]
-	InvalidResponse(String),
+    InvalidResponse(String),
     #[error("{0}")]
-	NavigationError(String),
+    NavigationError(String),
 
     #[error("CDP Error: {message}")]
     CDPError { code: i32, message: String },

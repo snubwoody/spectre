@@ -3,6 +3,6 @@ pub mod cdp;
 pub mod dom;
 mod error;
 pub mod page;
-pub use error::{Error, Result};
 pub use browser::Browser;
+pub use error::{Error, Result};
 pub use page::Page;

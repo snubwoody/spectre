@@ -1,9 +1,9 @@
-use std::fmt::Debug;
 use crate::dom::DomNode;
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value;
+use std::fmt::Debug;
 use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
@@ -44,14 +44,16 @@ impl CDPMessage {
         }
     }
 
-	/// Navigate the page
-	/// 
-	/// Corresponds to [`Page.navigate`](https://vanilla.aslushnikov.com/?Page.navigate)
+    /// Navigate the page
+    ///
+    /// Corresponds to [`Page.navigate`](https://vanilla.aslushnikov.com/?Page.navigate)
     pub fn navigate(id: i32, session_id: &str, url: &str) -> Self {
         Self {
             id,
             session_id: Some(String::from(session_id)),
-            method: CDPMethod::Navigate { url: String::from(url) },
+            method: CDPMethod::Navigate {
+                url: String::from(url),
+            },
         }
     }
 
@@ -82,18 +84,16 @@ pub enum CDPMethod {
     AttachToTarget { target_id: String, flatten: bool },
     #[serde(rename = "Page.captureScreenshot")]
     Screenshot { format: ScreenshotFormat },
-	/// Navigates the current page to the given url.
-	/// 
-	/// Corresponds to [`Page.navigate`](https://vanilla.aslushnikov.com/?Page.navigate)
+    /// Navigates the current page to the given url.
+    ///
+    /// Corresponds to [`Page.navigate`](https://vanilla.aslushnikov.com/?Page.navigate)
     #[serde(rename = "Page.navigate")]
     Navigate { url: String },
-	/// Returns the root DOM node.
-	/// 
-	/// Corresponds to [`DOM.getDocument`](https://vanilla.aslushnikov.com/?DOM.getDocument)
+    /// Returns the root DOM node.
+    ///
+    /// Corresponds to [`DOM.getDocument`](https://vanilla.aslushnikov.com/?DOM.getDocument)
     #[serde(rename = "DOM.getDocument")]
-    GetDocument{
-		depth: i32
-	},
+    GetDocument { depth: i32 },
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -113,8 +113,8 @@ pub type GetDocumentResponse = CDPResponse<GetDocumentBody>;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CDPResponse<T> {
     id: i32,
-	#[serde(rename="sessionId")]
-	session_id: Option<String>,
+    #[serde(rename = "sessionId")]
+    session_id: Option<String>,
     result: T,
 }
 
@@ -143,20 +143,20 @@ pub struct GetTargetBody {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AttachToTargetBody {
-	pub session_id: String,
+    pub session_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GetDocumentBody {
-	pub root: DomNode,
+    pub root: DomNode,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PageNavigateBody{
-	pub frame_id: String,
-	pub loader_id: String,
-	pub error_text: Option<String>
+pub struct PageNavigateBody {
+    pub frame_id: String,
+    pub loader_id: String,
+    pub error_text: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -181,18 +181,18 @@ impl Target {
     }
 }
 
-#[derive(Debug,Deserialize)]
-#[serde(rename_all="camelCase")]
-pub struct WebSocketTarget{
-	pub id: String,
-	pub url: String,
-	pub title: String,
-	pub description: String,
-	pub devtools_frontend_url: String,
-	#[serde(rename="type")]
-	pub target_type: TargetType,
-	#[serde(rename="webSocketDebuggerUrl")]
-	pub endpoint: String,
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebSocketTarget {
+    pub id: String,
+    pub url: String,
+    pub title: String,
+    pub description: String,
+    pub devtools_frontend_url: String,
+    #[serde(rename = "type")]
+    pub target_type: TargetType,
+    #[serde(rename = "webSocketDebuggerUrl")]
+    pub endpoint: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
@@ -239,24 +239,22 @@ impl CDPConnection {
 
         while let Some(Ok(Message::Text(message))) = self.stream.next().await {
             let json: Value = serde_json::from_str(message.as_str())?;
-			// Filter out events and only return
-			// responses
-			if let Some(_) = json.get("id"){
-				match serde_json::from_str(message.as_ref()) {
-					Ok(response) => {
-						return Ok(response);
-					}
-					Err(err) => {
-						match serde_json::from_str::<CDPError>(&message) {
-							Ok(cdp_err) => return Err(cdp_err.into()),
-							Err(_) => {
-								let error = Error::InvalidResponse(format!("{}",err));
-								return Err(error)
-							}
-						}
-					}
-				}
-			}
+            // Filter out events and only return
+            // responses
+            if let Some(_) = json.get("id") {
+                match serde_json::from_str(message.as_ref()) {
+                    Ok(response) => {
+                        return Ok(response);
+                    }
+                    Err(err) => match serde_json::from_str::<CDPError>(&message) {
+                        Ok(cdp_err) => return Err(cdp_err.into()),
+                        Err(_) => {
+                            let error = Error::InvalidResponse(format!("{}", err));
+                            return Err(error);
+                        }
+                    },
+                }
+            }
         }
 
         Err(Error::FailedToSendMessage)

@@ -53,7 +53,7 @@ async fn download_chrome() -> Result<(), Error> {
 }
 
 #[tokio::main]
-async fn main() -> Result<(),Error> {
+async fn main() -> Result<(), Error> {
     let args = Args::parse();
     match args.command {
         Command::Download { browser } => match browser {
