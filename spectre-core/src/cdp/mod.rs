@@ -1,12 +1,10 @@
+mod connection;
 use crate::dom::DomNode;
-use crate::{Error, Result, error::CDPError};
-use futures_util::{SinkExt, StreamExt};
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use crate::Result;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fmt::Debug;
-use tokio::net::TcpStream;
-use tokio_tungstenite::tungstenite::Message;
-use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
+pub use connection::CDPConnection;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -65,6 +63,18 @@ impl CDPMessage {
         }
     }
 
+	/// Evaluate JS in the browser.
+    pub fn evaluate(id: i32, session_id: &str, expression: &str) -> Self {
+        Self {
+            id,
+            session_id: Some(session_id.to_string()),
+            method: CDPMethod::Evaluate { 
+				expression: expression.to_string(), 
+				await_promise: true 
+			},
+        }
+    }
+
     /// Get the json representation of the message
     pub fn json(&self) -> Result<Value> {
         let json = serde_json::to_value(self)?;
@@ -94,6 +104,19 @@ pub enum CDPMethod {
     /// Corresponds to [`DOM.getDocument`](https://vanilla.aslushnikov.com/?DOM.getDocument)
     #[serde(rename = "DOM.getDocument")]
     GetDocument { depth: i32 },
+    /// Evaluates expression on global object.
+    ///
+    /// Corresponds to [`Runtime.evaluate`](https://vanilla.aslushnikov.com/?Runtime.evaluate)
+    #[serde(rename = "Runtime.evaluate")]
+    #[serde(rename_all = "camelCase")]
+	Evaluate{
+		/// The expression to evaluate
+		expression: String,
+		/// Where execution should await the expression and 
+		/// return the awaited value once the promise is
+		/// resolved.
+		await_promise: bool
+	}
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -207,56 +230,7 @@ pub enum TargetType {
     WebView,
 }
 
-#[derive(Debug)]
-pub struct CDPConnection {
-    stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
-}
 
-impl CDPConnection {
-    pub async fn new(url: &str,) -> Result<Self> {
-        let (stream, _) = connect_async(url).await?;
-        Ok(Self { stream })
-    }
-
-    /// Connect to the root web socket i.e the browser
-    pub async fn root(url: &str) -> Result<Self> {
-        let (stream, _) = connect_async(url).await?;
-        Ok(Self {
-            stream,
-        })
-    }
-
-    /// Send a message
-    pub async fn send<T>(&mut self, message: CDPMessage) -> Result<T>
-    where
-        T: DeserializeOwned + Debug,
-    {
-        let msg: Message = Message::Text(message.json()?.to_string().into());
-        self.stream.send(msg).await?;
-
-        while let Some(Ok(Message::Text(message))) = self.stream.next().await {
-            let json: Value = serde_json::from_str(message.as_str())?;
-            // Filter out events and only return
-            // responses
-            if json.get("id").is_some() {
-                match serde_json::from_str(message.as_ref()) {
-                    Ok(response) => {
-                        return Ok(response);
-                    }
-                    Err(err) => match serde_json::from_str::<CDPError>(&message) {
-                        Ok(cdp_err) => return Err(cdp_err.into()),
-                        Err(_) => {
-                            let error = Error::InvalidResponse(format!("{}", err));
-                            return Err(error);
-                        }
-                    },
-                }
-            }
-        }
-
-        Err(Error::FailedToSendMessage)
-    }
-}
 
 #[cfg(test)]
 mod tests {
