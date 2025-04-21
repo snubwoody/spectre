@@ -1,5 +1,5 @@
 use crate::{
-    cdp::{CDPConnection, CDPMessage, CDPMethod, PageNavigateResponse, ScreenshotFormat}, Result
+    cdp::{CDPConnection, CDPMessage, CDPMethod, GetDocumentResponse, PageNavigateResponse, ScreenshotFormat}, dom::DomNode, Result
 };
 use serde_json::Value;
 
@@ -10,7 +10,6 @@ pub struct Page {
     session_id: String,
     conn: CDPConnection,
 	endpoint: String,
-
 }
 
 impl Page {
@@ -30,6 +29,22 @@ impl Page {
     pub fn session_id(&self) -> &str {
         &self.session_id
     }
+
+	async fn get_dom(&mut self) -> Result<DomNode>{
+		// Set to -1 to get all sub nodes.
+		let method = CDPMethod::GetDocument { depth: -1 };
+		let message = CDPMessage::root(1, method);
+		let response: GetDocumentResponse = self.conn.send(message).await?;
+		
+		Ok(response.body().root)
+	}
+
+	pub async fn get_by_name(&mut self) -> Result<()>{
+		let root = self.get_dom().await?;
+		dbg!(root);
+		
+		Ok(())
+	}
 
 	pub async fn navigate(&mut self) -> Result<()>{
 		let method = CDPMethod::Navigate { url: String::from("https://youtube.com") };

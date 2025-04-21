@@ -1,12 +1,11 @@
 use spectre_core::browser::Browser;
 use spectre_core::Result;
-use spectre_core::page::Page;
 
 #[tokio::test]
-async fn navigate_page() -> Result<()>{
+async fn get_by_name() -> Result<()>{
 	let mut browser = Browser::launch().await?;
 	let mut page = browser.goto("https://google.com").await?;
-	page.navigate().await?;
+	page.get_by_name().await?;
 
 	Ok(())
 }
