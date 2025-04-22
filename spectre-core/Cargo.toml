@@ -13,5 +13,6 @@ futures-util = {workspace = true}
 reqwest = {workspace = true}
 tokio-tungstenite = {workspace = true}
 rand = {workspace = true}
+log = {workspace = true}
 image = "0.25.6"
 

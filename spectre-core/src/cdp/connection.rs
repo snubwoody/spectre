@@ -54,6 +54,7 @@ impl CDPConnection {
         self.stream.send(msg).await?;
 
         while let Some(Ok(Message::Text(message))) = self.stream.next().await {
+			dbg!(&message);
             let json: Value = serde_json::from_str(message.as_str())?;
             // Filter out events and only return responses
             if json.get("id").is_some() {

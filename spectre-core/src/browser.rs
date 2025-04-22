@@ -105,7 +105,7 @@ impl Browser {
             .await?;
 
         let body: WebSocketTarget = resp.json().await?;
-        let page = Page::new("", &body.endpoint).await?;
+        let page = Page::new(&body.endpoint).await?;
         Ok(page)
     }
 }

@@ -14,8 +14,8 @@ pub struct Page {
 }
 
 impl Page {
-    pub async fn new(session_id: &str, url: &str) -> Result<Self> {
-        let mut conn = CDPConnection::new(url).await?;
+    pub async fn new(url: &str) -> Result<Self> {
+        let conn = CDPConnection::new(url).await?;
 		let session = conn.create_session().await?;
 		
         Ok(Page {
@@ -28,7 +28,8 @@ impl Page {
         &self.endpoint
     }
 
-    async fn get_dom(&mut self) -> Result<DomNode> {
+	/// Get the whole DOM
+    pub async fn get_dom(&mut self) -> Result<DomNode> {
         // Set to -1 to get all sub nodes.
         let method = CDPMethod::GetDocument { depth: -1 };
         let response: GetDocumentResponse = self.session.send(method).await?;
