@@ -23,7 +23,7 @@ impl CDPConnection {
         Ok(Self { stream })
     }
 
-    pub async fn create_session(&mut self) -> Result<CDPSession> {
+    pub async fn create_session(mut self) -> Result<CDPSession> {
         let response: GetTargetResponse = self.send(CDPMessage::get_targets(1)).await?;
         let targets = response.body().targets;
 
@@ -55,8 +55,7 @@ impl CDPConnection {
 
         while let Some(Ok(Message::Text(message))) = self.stream.next().await {
             let json: Value = serde_json::from_str(message.as_str())?;
-            // Filter out events and only return
-            // responses
+            // Filter out events and only return responses
             if json.get("id").is_some() {
                 match serde_json::from_str(message.as_ref()) {
                     Ok(response) => {
@@ -78,13 +77,13 @@ impl CDPConnection {
 }
 
 #[derive(Debug)]
-pub struct CDPSession<'conn> {
-    conn: &'conn mut CDPConnection,
+pub struct CDPSession {
+    conn: CDPConnection,
     session_id: String,
 }
 
-impl<'conn> CDPSession<'conn> {
-    fn new(conn: &'conn mut CDPConnection, session_id: &str) -> Self {
+impl CDPSession {
+    fn new(conn: CDPConnection, session_id: &str) -> Self {
         Self {
             conn,
             session_id: session_id.to_string(),

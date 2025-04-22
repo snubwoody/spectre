@@ -71,3 +71,14 @@ async fn can_handle_syntax_error() -> Result<()> {
     assert!(result.is_err());
     Ok(())
 }
+
+#[tokio::test]
+async fn attach_to_target() -> Result<()> {
+    let browser = Browser::launch().await?;
+    let mut connection = CDPConnection::new(browser.url()).await?;
+    let mut session = connection.create_session().await?;
+
+    let result = session.evaluate("return 5").await;
+    assert!(result.is_err());
+    Ok(())
+}

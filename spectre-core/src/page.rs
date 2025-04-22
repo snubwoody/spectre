@@ -1,10 +1,7 @@
 use crate::{
-    Result,
     cdp::{
-        CDPConnection, CDPMessage, CDPMethod, GetDocumentResponse, PageNavigateResponse,
-        ScreenshotFormat,
-    },
-    dom::{DomNode, NodeName},
+        CDPConnection, CDPMessage, CDPMethod, CDPSession, GetDocumentResponse, PageNavigateResponse, ScreenshotFormat
+    }, dom::{DomNode, NodeName}, Result
 };
 use serde_json::Value;
 
@@ -12,17 +9,17 @@ use serde_json::Value;
 
 #[derive(Debug)]
 pub struct Page {
-    session_id: String,
-    conn: CDPConnection,
+    session: CDPSession,
     endpoint: String,
 }
 
 impl Page {
     pub async fn new(session_id: &str, url: &str) -> Result<Self> {
-        let conn = CDPConnection::new(url).await?;
+        let mut conn = CDPConnection::new(url).await?;
+		let session = conn.create_session().await?;
+		
         Ok(Page {
-            session_id: String::from(session_id),
-            conn,
+            session,
             endpoint: String::from(url),
         })
     }
@@ -31,15 +28,10 @@ impl Page {
         &self.endpoint
     }
 
-    pub fn session_id(&self) -> &str {
-        &self.session_id
-    }
-
     async fn get_dom(&mut self) -> Result<DomNode> {
         // Set to -1 to get all sub nodes.
         let method = CDPMethod::GetDocument { depth: -1 };
-        let message = CDPMessage::root(1, method);
-        let response: GetDocumentResponse = self.conn.send(message).await?;
+        let response: GetDocumentResponse = self.session.send(method).await?;
         let root = response.body().root;
 
         Ok(root)
@@ -55,34 +47,8 @@ impl Page {
         let method = CDPMethod::Navigate {
             url: String::from("https://youtube.com"),
         };
-        let message = CDPMessage::root(2, method);
-        dbg!(&message);
-        let response: PageNavigateResponse = self.conn.send(message).await?;
-        dbg!(response);
+        let response: PageNavigateResponse = self.session.send(method).await?;
         Ok(())
     }
 
-    pub async fn screenshot(&mut self) -> Result<()> {
-        let message = CDPMessage::screenshot(1, &self.session_id, ScreenshotFormat::Png);
-
-        let _ = self.conn.send::<Value>(message).await;
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::browser::Browser;
-
-    #[tokio::test]
-    pub async fn capture_screenshot() -> Result<()> {
-        let mut browser = Browser::launch().await?;
-        let mut page = browser.goto("https://google.com").await?;
-        let targets = browser.get_targets().await?;
-        // dbg!(&targets);
-        page.screenshot().await?;
-
-        Ok(())
-    }
 }

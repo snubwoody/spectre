@@ -2,7 +2,7 @@ mod connection;
 pub mod runtime;
 use crate::Result;
 use crate::dom::DomNode;
-pub use connection::CDPConnection;
+pub use connection::{CDPConnection,CDPSession};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fmt::Debug;
