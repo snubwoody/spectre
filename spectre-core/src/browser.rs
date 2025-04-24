@@ -97,7 +97,20 @@ impl Browser {
         Ok(response.body().targets)
     }
 
+    pub async fn new_page(&mut self) -> Result<Page> {
+        let client = Client::new();
+        let resp = client
+            .put(format!("http://localhost:{}/json/new?https://example.com", self.port))
+            .send()
+            .await?;
+
+        let body: WebSocketTarget = resp.json().await?;
+        let page = Page::new(&body.endpoint).await?;
+        Ok(page)
+    }
+
     pub async fn goto(&mut self, url: &str) -> Result<Page> {
+		// FIXME going to '.html' pages breaks this
         let client = Client::new();
         let resp = client
             .put(format!("http://localhost:{}/json/new?{}", self.port, url))
