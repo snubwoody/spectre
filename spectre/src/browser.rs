@@ -8,9 +8,11 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
 
-/// An instance of a browser
+/// An instance of a browser. The browser is launched on a
+/// local port and listens to json messages via websockets.
 ///
-/// # Example
+/// # Start a new browser process
+/// 
 /// ```no_run
 /// use spectre::{Browser,Result};
 ///
@@ -50,6 +52,7 @@ impl Browser {
         let listener = std::net::TcpListener::bind("0.0.0.0:0")?;
         let port = listener.local_addr()?.port();
 
+		// TODO is this neccessary?
         std::mem::drop(listener);
 
         let child = Command::new("../chrome-win64/chrome.exe")

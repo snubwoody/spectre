@@ -3,7 +3,7 @@
 use serde_json::Value;
 use spectre::{
     Result,
-    browser::Browser,
+    Browser,
     cdp::{
         AttachToTargetResponse, CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse,
         GetDocumentResponse, GetTargetResponse, PageNavigateResponse,

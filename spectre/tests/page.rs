@@ -1,5 +1,5 @@
 use spectre::{Result, EMPTY_PAGE};
-use spectre::browser::Browser;
+use spectre::Browser;
 use spectre::dom::NodeName;
 
 #[tokio::test]
