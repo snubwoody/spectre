@@ -9,8 +9,6 @@ use crate::{
     }, dom::{DomNode, NodeName}, Result
 };
 
-// TODO impl Drop
-
 #[derive(Debug)]
 pub struct Page {
     session: CDPSession,

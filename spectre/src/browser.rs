@@ -75,7 +75,7 @@ impl Browser {
         let body: ResponseBody = response.json().await?;
 
         let ws_url = body.web_socket_debugger_url;
-        let conn = CDPConnection::root(&ws_url).await?;
+        let conn = CDPConnection::new(&ws_url).await?;
 
         Ok(Self {
             process: child,

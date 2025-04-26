@@ -7,19 +7,22 @@ use futures_util::{SinkExt, StreamExt};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::fmt::Debug;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
 /// A raw connection to the Chrome Devtool protocol.
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct CDPConnection {
-    stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+    stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
 }
 
 impl CDPConnection {
     pub async fn new(url: &str) -> Result<Self> {
         let (stream, _) = connect_async(url).await?;
+		let stream = Arc::new(Mutex::new(stream));
         Ok(Self { stream })
     }
 
@@ -39,21 +42,16 @@ impl CDPConnection {
         Ok(session)
     }
 
-    /// Connect to the root web socket i.e the browser
-    pub async fn root(url: &str) -> Result<Self> {
-        let (stream, _) = connect_async(url).await?;
-        Ok(Self { stream })
-    }
-
     /// Send a message
     pub async fn send<T>(&mut self, message: CDPMessage) -> Result<T>
     where
         T: DeserializeOwned,
     {
         let msg: Message = Message::Text(message.json()?.to_string().into());
-        self.stream.send(msg).await?;
+		let mut stream = self.stream.lock().await;
+        stream.send(msg).await?;
 
-        while let Some(Ok(Message::Text(message))) = self.stream.next().await {
+        while let Some(Ok(Message::Text(message))) = stream.next().await {
             let json: Value = serde_json::from_str(message.as_str())?;
             // Filter out events and only return responses
             if json.get("id").is_some() {

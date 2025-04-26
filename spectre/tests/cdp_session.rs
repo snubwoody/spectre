@@ -70,10 +70,13 @@ async fn can_handle_syntax_error() -> Result<()> {
 }
 
 #[tokio::test]
-async fn get_document() -> Result<()> {
+async fn dom_node_into_element() -> Result<()> {
     let browser = Browser::launch().await?;
     let connection = CDPConnection::new(browser.url()).await?;
     let mut session = connection.create_session().await?;
-
+	let response = session.get_dom(-1).await?;
+	let root = response.body().root;
+	let element = root.into_element(&mut session);
+	dbg!(element);
     Ok(())
 }

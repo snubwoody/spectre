@@ -1,32 +1,17 @@
 use serde::{Deserialize, Serialize};
+use crate::cdp::CDPSession;
 
 /// An element in the DOM, all elements are matched not just
 /// html tags including `#document` and `#text`.
+#[derive(Debug)]
 pub struct Element{
-
+	node_id: i32,
+	children: Vec<Box<Element>>
 }
 
 impl Element{
-	fn parse_class_attr(attributes: &[&str]){
-		let mut active = false;
-		let mut class = vec![];
-		for attr in attributes{
-			match *attr {
-				"class" => {
-					active = true
-				},
-				_ => {
-					class.push(*attr);
-				}
-			}
-			dbg!(attr);
-		}
-		dbg!(class);
-	}
-
-	fn parse_attributes(attributes: &[&str]) -> Vec<Attribute>{
-		Self::parse_class_attr(attributes);
-		vec![]
+	fn new(node_id: i32, children: Vec<Box<Element>>) -> Self{
+		Self { node_id, children }
 	}
 }
 
@@ -73,6 +58,17 @@ impl DomNode {
 
         None
     }
+
+	pub fn into_element(&self,session: &mut CDPSession) -> Element{
+		let mut children = vec![];
+		
+		for child in &self.children{
+			let child_element = child.into_element(session);
+			children.push(Box::new(child_element));
+		}
+
+		Element::new(self.node_id, children)
+	}
 }
 
 #[derive(Debug,Clone, PartialEq, Eq, PartialOrd, Ord,Default)]
@@ -165,28 +161,6 @@ pub enum NodeName {
 #[cfg(test)]
 mod tests{
     use super::*;
-
-	#[test]
-	fn parse_attributes(){
-		let attrs = vec!["class","btn","btn-primary","btn-md","href","https://youtube.com"];
-		let parsed_attrs = Element::parse_attributes(&attrs);
-		let class = Attribute::Class(String::from("btn btn-primary btm-md"));
-		let href = Attribute::Href(String::from("https://youtube.com"));
-
-		assert_eq!(parsed_attrs[0],class);
-		assert_eq!(parsed_attrs[1],href);
-	}
-
-	#[test]
-	fn inner_attribute_names_get_parsed(){
-		let attrs = vec!["class","class","underline","href","href"];
-		let parsed_attrs = Element::parse_attributes(&attrs);
-		let class = Attribute::Class(String::from("btn btn-primary btm-md"));
-		let href = Attribute::Href(String::from("https://youtube.com"));
-
-		assert_eq!(parsed_attrs[0],class);
-		assert_eq!(parsed_attrs[1],href);
-	}
 
 	#[test]
 	fn get_dom_node(){

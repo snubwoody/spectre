@@ -40,6 +40,16 @@ async fn call_function_on_element() -> Result<()>{
 }
 
 #[tokio::test]
+async fn get_dom() -> Result<()> {
+    let mut browser = Browser::launch().await?;
+    let mut page = browser.goto("https://google.com").await?;
+
+    let root = page.get_dom().await?;
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn get_by_name() -> Result<()> {
     let mut browser = Browser::launch().await?;
     let mut page = browser.goto("https://google.com").await?;
