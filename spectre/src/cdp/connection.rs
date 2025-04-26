@@ -74,7 +74,7 @@ impl CDPConnection {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct CDPSession {
     conn: CDPConnection,
     session_id: String,

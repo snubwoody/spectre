@@ -6,12 +6,13 @@ use crate::cdp::CDPSession;
 #[derive(Debug)]
 pub struct Element{
 	node_id: i32,
+	session: CDPSession,
 	children: Vec<Box<Element>>
 }
 
 impl Element{
-	fn new(node_id: i32, children: Vec<Box<Element>>) -> Self{
-		Self { node_id, children }
+	fn new(node_id: i32,session: CDPSession, children: Vec<Box<Element>>) -> Self{
+		Self { node_id, session,children }
 	}
 }
 
@@ -59,15 +60,15 @@ impl DomNode {
         None
     }
 
-	pub fn into_element(&self,session: &mut CDPSession) -> Element{
+	pub fn into_element(&self,session: CDPSession) -> Element{
 		let mut children = vec![];
 		
 		for child in &self.children{
-			let child_element = child.into_element(session);
+			let child_element = child.into_element(session.clone());
 			children.push(Box::new(child_element));
 		}
 
-		Element::new(self.node_id, children)
+		Element::new(self.node_id,session, children)
 	}
 }
 

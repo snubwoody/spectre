@@ -76,7 +76,7 @@ async fn dom_node_into_element() -> Result<()> {
     let mut session = connection.create_session().await?;
 	let response = session.get_dom(-1).await?;
 	let root = response.body().root;
-	let element = root.into_element(&mut session);
+	let element = root.into_element(session);
 	dbg!(element);
     Ok(())
 }
