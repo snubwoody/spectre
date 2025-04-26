@@ -83,7 +83,7 @@ impl CDPMessage {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize,Clone,PartialEq,Eq)]
 #[serde(tag = "method", content = "params")]
 pub enum CDPMethod {
     #[serde(rename = "Target.getTargets")]
@@ -120,7 +120,7 @@ pub enum CDPMethod {
     },
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize,Clone, Copy,PartialEq,Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ScreenshotFormat {
     Jpeg,
