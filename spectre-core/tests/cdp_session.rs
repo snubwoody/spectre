@@ -31,10 +31,7 @@ async fn evaluate() -> Result<()> {
     let connection = CDPConnection::new(browser.url()).await?;
     let mut session = connection.create_session().await?;
 
-    let response = session.evaluate("5").await?;
-    dbg!(response);
-    // TODO assert reponse value
-
+    let _ = session.evaluate("5").await?;
     Ok(())
 }
 

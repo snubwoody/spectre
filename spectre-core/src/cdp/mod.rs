@@ -1,3 +1,5 @@
+//! Manages sending and receiving messages to the browser via 
+//! the Chrome DevTools Protocol.
 mod connection;
 pub mod runtime;
 use crate::Result;
@@ -117,6 +119,15 @@ pub enum CDPMethod {
         /// return the awaited value once the promise is
         /// resolved.
         await_promise: bool,
+    },
+    /// Compiles an expression into a script.
+    ///
+    /// Corresponds to [`Runtime.compileScript`]
+	/// (https://vanilla.aslushnikov.com/?Dom.resolveNode)
+    #[serde(rename = "Dom.resolveNode")]
+    #[serde(rename_all = "camelCase")]
+    ResolveNode {
+        node_id: String,
     },
 }
 

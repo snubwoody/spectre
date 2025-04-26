@@ -98,7 +98,9 @@ impl CDPSession {
         .await
     }
 
-    /// Get the root DOM node and it's the children defined by `depth`.
+    /// Get the root DOM node and it's the children upto `depth`. This
+	/// method gets all node including non-html elements such as 
+	/// `#document` and `#text`.
 	/// 
 	/// Set depth to `-1` to get all children.
 	/// 
@@ -134,7 +136,30 @@ impl CDPSession {
         .await
     }
 
-    /// Evaluate javascript in the browser
+	/// Resolved the JS node object for a given node id.
+	/// The object can than be used in other methods `Runtime.callFunctionOn`
+	/// 
+	/// # Example
+	/// ```
+	/// use spectre_core::{Browser,Page,Result,CDPConnection};
+	/// 
+	/// #[tokio::main]
+	/// async fn main() -> Result<()>{
+	///     let browser = Browser::launch().await?;
+	///     let connection = 
+	///     
+	///     println!("Hello world");
+	///     panic!("");
+	/// }
+	/// ```
+    pub async fn resolve_node(&mut self, depth: i32) -> Result<GetDocumentResponse> {
+        self.send(CDPMethod::GetDocument {
+            depth
+        })
+        .await
+    }
+
+    /// Evaluate javascript string in the browser
     pub async fn evaluate(&mut self, expr: &str) -> Result<EvaluateResponse> {
         let response: EvaluateResponse = self
             .send(CDPMethod::Evaluate {

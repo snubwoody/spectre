@@ -1,5 +1,46 @@
 use serde::{Deserialize, Serialize};
 
+/// An element in the DOM, all elements are matched not just
+/// html tags including `#document` and `#text`.
+pub struct Element{
+
+}
+
+impl Element{
+	fn parse_class_attr(attributes: &[&str]){
+		let mut active = false;
+		let mut class = vec![];
+		for attr in attributes{
+			match *attr {
+				"class" => {
+					active = true
+				},
+				_ => {
+					class.push(*attr);
+				}
+			}
+			dbg!(attr);
+		}
+		dbg!(class);
+	}
+
+	fn parse_attributes(attributes: &[&str]) -> Vec<Attribute>{
+		Self::parse_class_attr(attributes);
+		vec![]
+	}
+}
+
+
+/// Html attributes
+#[derive(Debug,Clone, PartialEq, Eq)]
+pub enum Attribute{
+	Href(String),
+	Id(String),
+	Class(String),
+	Unknown(String)
+}
+
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq,Default)]
 #[serde(rename_all = "camelCase")]
 pub struct DomNode {
@@ -9,6 +50,8 @@ pub struct DomNode {
     pub document_url: Option<String>,
     pub node_name: NodeName,
     pub parent_id: Option<i32>,
+	#[serde(default)]
+	pub attributes: Vec<String>,
     #[serde(default)]
     pub children: Vec<Box<DomNode>>,
 }
@@ -119,10 +162,31 @@ pub enum NodeName {
     Unknown(String),
 }
 
-
 #[cfg(test)]
 mod tests{
     use super::*;
+
+	#[test]
+	fn parse_attributes(){
+		let attrs = vec!["class","btn","btn-primary","btn-md","href","https://youtube.com"];
+		let parsed_attrs = Element::parse_attributes(&attrs);
+		let class = Attribute::Class(String::from("btn btn-primary btm-md"));
+		let href = Attribute::Href(String::from("https://youtube.com"));
+
+		assert_eq!(parsed_attrs[0],class);
+		assert_eq!(parsed_attrs[1],href);
+	}
+
+	#[test]
+	fn inner_attribute_names_get_parsed(){
+		let attrs = vec!["class","class","underline","href","href"];
+		let parsed_attrs = Element::parse_attributes(&attrs);
+		let class = Attribute::Class(String::from("btn btn-primary btm-md"));
+		let href = Attribute::Href(String::from("https://youtube.com"));
+
+		assert_eq!(parsed_attrs[0],class);
+		assert_eq!(parsed_attrs[1],href);
+	}
 
 	#[test]
 	fn get_dom_node(){

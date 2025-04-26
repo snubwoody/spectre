@@ -97,6 +97,10 @@ impl Browser {
         Ok(response.body().targets)
     }
 
+	pub async fn new_session(){
+		
+	}
+
     pub async fn new_page(&mut self) -> Result<Page> {
         let client = Client::new();
         let resp = client
