@@ -1,6 +1,6 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CDPMessage, CDPMethod, GetTargetResponse, PageNavigateResponse,
+    AttachToTargetResponse, CDPMessage, CDPMethod, GetDocumentResponse, GetTargetResponse, PageNavigateResponse
 };
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
@@ -94,6 +94,42 @@ impl CDPSession {
     pub async fn navigate(&mut self, url: &str) -> Result<PageNavigateResponse> {
         self.send(CDPMethod::Navigate {
             url: url.to_string(),
+        })
+        .await
+    }
+
+    /// Get the root DOM node and it's the children defined by `depth`.
+	/// 
+	/// Set depth to `-1` to get all children.
+	/// 
+	/// # Example
+	/// ```
+	/// use spectre_core::{
+	///     Browser,
+	///     Page,
+	///     Result,
+	///     dom::NodeName,
+	///     cdp::CDPConnection
+	/// };
+	/// 
+	/// #[tokio::main]
+	/// async fn main() -> Result<()>{
+	///     let browser = Browser::launch().await?;
+	///     let connection = CDPConnection::new(browser.url()).await?;
+	///     let mut session = connection.create_session().await?;
+	///     
+	///     // Get child nodes up to 5 elements deep;
+	///     let response = session.get_dom(5).await?;
+	/// 	
+	///     let node_name = response.body().root.node_name;
+	/// 
+	///     assert_eq!(node_name,NodeName::Document);
+	///     Ok(())
+	/// }
+	/// ```
+    pub async fn get_dom(&mut self, depth: i32) -> Result<GetDocumentResponse> {
+        self.send(CDPMethod::GetDocument {
+            depth
         })
         .await
     }

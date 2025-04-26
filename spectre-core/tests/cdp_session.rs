@@ -8,7 +8,7 @@ use spectre_core::{
 #[tokio::test]
 async fn create_session() -> Result<()> {
     let browser = Browser::launch().await?;
-    let mut connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(browser.url()).await?;
     let mut session = connection.create_session().await?;
 
     let _: GetTargetResponse = session.send(CDPMethod::GetTargets).await?;
@@ -18,7 +18,7 @@ async fn create_session() -> Result<()> {
 #[tokio::test]
 async fn navigate() -> Result<()> {
     let browser = Browser::launch().await?;
-    let mut connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(browser.url()).await?;
     let mut session = connection.create_session().await?;
 
     session.navigate(EMPTY_PAGE).await?;
@@ -28,7 +28,7 @@ async fn navigate() -> Result<()> {
 #[tokio::test]
 async fn evaluate() -> Result<()> {
     let browser = Browser::launch().await?;
-    let mut connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(browser.url()).await?;
     let mut session = connection.create_session().await?;
 
     let response = session.evaluate("5").await?;
@@ -41,7 +41,7 @@ async fn evaluate() -> Result<()> {
 #[tokio::test]
 async fn can_handle_exception() -> Result<()> {
     let browser = Browser::launch().await?;
-    let mut connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(browser.url()).await?;
     let mut session = connection.create_session().await?;
 
     let result = session.evaluate("throw 5").await;
@@ -64,7 +64,7 @@ async fn can_handle_exception() -> Result<()> {
 #[tokio::test]
 async fn can_handle_syntax_error() -> Result<()> {
     let browser = Browser::launch().await?;
-    let mut connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(browser.url()).await?;
     let mut session = connection.create_session().await?;
 
     let result = session.evaluate("return 5").await;
@@ -73,12 +73,10 @@ async fn can_handle_syntax_error() -> Result<()> {
 }
 
 #[tokio::test]
-async fn attach_to_target() -> Result<()> {
+async fn get_document() -> Result<()> {
     let browser = Browser::launch().await?;
-    let mut connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(browser.url()).await?;
     let mut session = connection.create_session().await?;
 
-    let result = session.evaluate("return 5").await;
-    assert!(result.is_err());
     Ok(())
 }

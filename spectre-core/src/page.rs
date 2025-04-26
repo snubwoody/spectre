@@ -1,6 +1,12 @@
 use crate::{
     cdp::{
-        runtime::EvaluateResponse, CDPConnection, CDPMessage, CDPMethod, CDPSession, GetDocumentResponse, PageNavigateResponse, ScreenshotFormat
+        runtime::EvaluateResponse, 
+		CDPConnection, 
+		CDPMethod, 
+		CDPSession, 
+		GetDocumentResponse, 
+		PageNavigateResponse, 
+		ScreenshotFormat
     }, dom::{DomNode, NodeName}, Result
 };
 use serde_json::Value;
@@ -32,9 +38,7 @@ impl Page {
     pub async fn get_dom(&mut self) -> Result<DomNode> {
         // Set to -1 to get all sub nodes.
         let method = CDPMethod::GetDocument { depth: -1 };
-        let response: Value = self.session.send(method.clone()).await?;
-		dbg!(response);
-        let response: GetDocumentResponse = self.session.send(method).await?;
+		let response: GetDocumentResponse = self.session.send(method).await?;
         let root = response.body().root;
 
         Ok(root)
