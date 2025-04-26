@@ -1,9 +1,9 @@
 //! Browser automation and testing library.
 mod browser;
-mod page;
-mod error;
-pub mod dom;
 pub mod cdp;
+pub mod dom;
+mod error;
+mod page;
 pub use browser::Browser;
 pub use error::{Error, Result};
 pub use page::Page;

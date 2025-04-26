@@ -1,6 +1,7 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentResponse, GetTargetResponse, PageNavigateResponse, ResolveNodeBody
+    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentResponse,
+    GetTargetResponse, PageNavigateResponse, ResolveNodeBody,
 };
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
@@ -8,13 +9,13 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 use tokio::net::TcpStream;
+use tokio::sync::Mutex;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
 /// A raw connection to the Chrome Devtool protocol.
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct CDPConnection {
     stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
 }
@@ -22,7 +23,7 @@ pub struct CDPConnection {
 impl CDPConnection {
     pub async fn new(url: &str) -> Result<Self> {
         let (stream, _) = connect_async(url).await?;
-		let stream = Arc::new(Mutex::new(stream));
+        let stream = Arc::new(Mutex::new(stream));
         Ok(Self { stream })
     }
 
@@ -48,7 +49,7 @@ impl CDPConnection {
         T: DeserializeOwned,
     {
         let msg: Message = Message::Text(message.json()?.to_string().into());
-		let mut stream = self.stream.lock().await;
+        let mut stream = self.stream.lock().await;
         stream.send(msg).await?;
 
         while let Some(Ok(Message::Text(message))) = stream.next().await {
@@ -74,7 +75,7 @@ impl CDPConnection {
     }
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct CDPSession {
     conn: CDPConnection,
     session_id: String,
@@ -97,74 +98,64 @@ impl CDPSession {
     }
 
     /// Get the root DOM node and it's the children upto `depth`. This
-	/// method gets all node including non-html elements such as 
-	/// `#document` and `#text`.
-	/// 
-	/// Set depth to `-1` to get all children.
-	/// 
-	/// # Example
-	/// ```
-	/// use spectre::{
-	///     Browser,
-	///     Page,
-	///     Result,
-	///     dom::NodeName,
-	///     cdp::CDPConnection
-	/// };
-	/// 
-	/// #[tokio::main]
-	/// async fn main() -> Result<()>{
-	///     let browser = Browser::launch().await?;
-	///     let connection = CDPConnection::new(browser.url()).await?;
-	///     let mut session = connection.create_session().await?;
-	///     
-	///     // Get child nodes up to 5 elements deep;
-	///     let response = session.get_dom(5).await?;
-	/// 	
-	///     let node_name = response.body().root.node_name;
-	/// 
-	///     assert_eq!(node_name,NodeName::Document);
-	///     Ok(())
-	/// }
-	/// ```
+    /// method gets all node including non-html elements such as
+    /// `#document` and `#text`.
+    ///
+    /// Set depth to `-1` to get all children.
+    ///
+    /// # Example
+    /// ```
+    /// use spectre::{
+    ///     Browser,
+    ///     Page,
+    ///     Result,
+    ///     dom::NodeName,
+    ///     cdp::CDPConnection
+    /// };
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()>{
+    ///     let browser = Browser::launch().await?;
+    ///     let connection = CDPConnection::new(browser.url()).await?;
+    ///     let mut session = connection.create_session().await?;
+    ///     
+    ///     // Get child nodes up to 5 elements deep;
+    ///     let response = session.get_dom(5).await?;
+    ///
+    ///     let node_name = response.body().root.node_name;
+    ///
+    ///     assert_eq!(node_name,NodeName::Document);
+    ///     Ok(())
+    /// }
+    /// ```
     pub async fn get_dom(&mut self, depth: i32) -> Result<GetDocumentResponse> {
-        self.send(CDPMethod::GetDocument {
-            depth
-        })
-        .await
+        self.send(CDPMethod::GetDocument { depth }).await
     }
 
-	/// Resolved the JS node object for a given node id.
-	/// The object can than be used in other methods `Runtime.callFunctionOn`
-	/// 
-	/// # Example
-	/// ```
-	/// use spectre::{Browser,Result};
-	/// 
-	/// #[tokio::main]
-	/// async fn main() -> Result<()>{
-	///     let mut browser = Browser::launch().await?;
-	///     let mut session = browser.get_session().await?; 
-	/// 
-	///     // Resolve the root node
-	///     let response = session.get_dom(-1).await?;
-	///     let root = response.body().root;
-	///     let response = session.resolve_node(root.node_id).await?;
-	///     let object = response.body().object;
-	///     
-	///     assert_eq!(object.description,"#document");
-	///     Ok(())
-	/// }
-	/// ```
-    pub async fn resolve_node(
-		&mut self, 
-		node_id: i32
-	) -> Result<CDPResponse<ResolveNodeBody>> 
-	{
-        self.send(CDPMethod::ResolveNode {
-            node_id
-        })
-        .await
+    /// Resolved the JS node object for a given node id.
+    /// The object can than be used in other methods `Runtime.callFunctionOn`
+    ///
+    /// # Example
+    /// ```
+    /// use spectre::{Browser,Result};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()>{
+    ///     let mut browser = Browser::launch().await?;
+    ///     let mut session = browser.get_session().await?;
+    ///
+    ///     // Resolve the root node
+    ///     let response = session.get_dom(-1).await?;
+    ///     let root = response.body().root;
+    ///     let response = session.resolve_node(root.node_id).await?;
+    ///     let object = response.body().object;
+    ///     
+    ///     assert_eq!(object.description,"#document");
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn resolve_node(&mut self, node_id: i32) -> Result<CDPResponse<ResolveNodeBody>> {
+        self.send(CDPMethod::ResolveNode { node_id }).await
     }
 
     /// Evaluate javascript string in the browser

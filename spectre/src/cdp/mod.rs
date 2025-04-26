@@ -1,10 +1,10 @@
-//! Manages sending and receiving messages to the browser via 
+//! Manages sending and receiving messages to the browser via
 //! the Chrome DevTools Protocol.
 mod connection;
 pub mod runtime;
 use crate::Result;
 use crate::dom::DomNode;
-pub use connection::{CDPConnection,CDPSession};
+pub use connection::{CDPConnection, CDPSession};
 use runtime::RemoteObject;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -86,7 +86,7 @@ impl CDPMessage {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize,Clone,PartialEq,Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(tag = "method", content = "params")]
 pub enum CDPMethod {
     #[serde(rename = "Target.getTargets")]
@@ -124,15 +124,13 @@ pub enum CDPMethod {
     /// Compiles an expression into a script.
     ///
     /// Corresponds to [`Runtime.compileScript`]
-	/// (https://vanilla.aslushnikov.com/?Dom.resolveNode)
+    /// (https://vanilla.aslushnikov.com/?Dom.resolveNode)
     #[serde(rename = "DOM.resolveNode")]
     #[serde(rename_all = "camelCase")]
-    ResolveNode {
-        node_id: i32,
-    },
+    ResolveNode { node_id: i32 },
 }
 
-#[derive(Debug, Deserialize, Serialize,Clone, Copy,PartialEq,Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ScreenshotFormat {
     Jpeg,

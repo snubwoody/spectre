@@ -1,7 +1,6 @@
 use serde_json::json;
 use spectre::{
-    EMPTY_PAGE, Error, Result,
-    Browser,
+    Browser, EMPTY_PAGE, Error, Result,
     cdp::{CDPConnection, CDPMethod, GetTargetResponse},
 };
 
@@ -74,9 +73,9 @@ async fn dom_node_into_element() -> Result<()> {
     let browser = Browser::launch().await?;
     let connection = CDPConnection::new(browser.url()).await?;
     let mut session = connection.create_session().await?;
-	let response = session.get_dom(-1).await?;
-	let root = response.body().root;
-	let element = root.into_element(session);
-	dbg!(element);
+    let response = session.get_dom(-1).await?;
+    let root = response.body().root;
+    let element = root.into_element(session);
+    dbg!(element);
     Ok(())
 }

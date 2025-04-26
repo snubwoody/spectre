@@ -12,7 +12,7 @@ use std::process::{Child, Command, Stdio};
 /// local port and listens to json messages via websockets.
 ///
 /// # Start a new browser process
-/// 
+///
 /// ```no_run
 /// use spectre::{Browser,Result};
 ///
@@ -52,7 +52,7 @@ impl Browser {
         let listener = std::net::TcpListener::bind("0.0.0.0:0")?;
         let port = listener.local_addr()?.port();
 
-		// TODO is this neccessary?
+        // TODO is this neccessary?
         std::mem::drop(listener);
 
         let child = Command::new("../chrome-win64/chrome.exe")
@@ -100,32 +100,35 @@ impl Browser {
         Ok(response.body().targets)
     }
 
-	/// Get the session for the default browser page.
-	/// 
-	/// # Example
-	/// ```
-	/// use spectre::{Browser,Result};
-	/// 
-	/// #[tokio::main]
-	/// async fn main() -> Result<()>{
-	///     let mut browser = Browser::launch().await?;
-	///     let session = browser.get_session().await;
-	///     
-	///     assert!(session.is_ok());
-	///     Ok(())
-	/// }
-	/// ```
-	pub async fn get_session(&mut self) -> Result<CDPSession>{
-		let connection = CDPConnection::new(&self.url).await?;
-		let session = connection.create_session().await?;
+    /// Get the session for the default browser page.
+    ///
+    /// # Example
+    /// ```
+    /// use spectre::{Browser,Result};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()>{
+    ///     let mut browser = Browser::launch().await?;
+    ///     let session = browser.get_session().await;
+    ///     
+    ///     assert!(session.is_ok());
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn get_session(&mut self) -> Result<CDPSession> {
+        let connection = CDPConnection::new(&self.url).await?;
+        let session = connection.create_session().await?;
 
-		Ok(session)
-	}
+        Ok(session)
+    }
 
     pub async fn new_page(&mut self) -> Result<Page> {
         let client = Client::new();
         let resp = client
-            .put(format!("http://localhost:{}/json/new?https://example.com", self.port))
+            .put(format!(
+                "http://localhost:{}/json/new?https://example.com",
+                self.port
+            ))
             .send()
             .await?;
 
@@ -135,7 +138,7 @@ impl Browser {
     }
 
     pub async fn goto(&mut self, url: &str) -> Result<Page> {
-		// FIXME going to '.html' pages breaks this
+        // FIXME going to '.html' pages breaks this
         let client = Client::new();
         let resp = client
             .put(format!("http://localhost:{}/json/new?{}", self.port, url))
