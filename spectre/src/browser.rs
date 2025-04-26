@@ -1,4 +1,4 @@
-use crate::cdp::WebSocketTarget;
+use crate::cdp::{CDPSession, WebSocketTarget};
 use crate::page::Page;
 use crate::{
     Result,
@@ -97,8 +97,26 @@ impl Browser {
         Ok(response.body().targets)
     }
 
-	pub async fn new_session(){
-		
+	/// Get the session for the default browser page.
+	/// 
+	/// # Example
+	/// ```
+	/// use spectre::{Browser,Result};
+	/// 
+	/// #[tokio::main]
+	/// async fn main() -> Result<()>{
+	///     let mut browser = Browser::launch().await?;
+	///     let session = browser.get_session().await;
+	///     
+	///     assert!(session.is_ok());
+	///     Ok(())
+	/// }
+	/// ```
+	pub async fn get_session(&mut self) -> Result<CDPSession>{
+		let connection = CDPConnection::new(&self.url).await?;
+		let session = connection.create_session().await?;
+
+		Ok(session)
 	}
 
     pub async fn new_page(&mut self) -> Result<Page> {
