@@ -5,6 +5,7 @@ pub mod runtime;
 use crate::Result;
 use crate::dom::DomNode;
 pub use connection::{CDPConnection,CDPSession};
+use runtime::RemoteObject;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fmt::Debug;
@@ -124,10 +125,10 @@ pub enum CDPMethod {
     ///
     /// Corresponds to [`Runtime.compileScript`]
 	/// (https://vanilla.aslushnikov.com/?Dom.resolveNode)
-    #[serde(rename = "Dom.resolveNode")]
+    #[serde(rename = "DOM.resolveNode")]
     #[serde(rename_all = "camelCase")]
     ResolveNode {
-        node_id: String,
+        node_id: i32,
     },
 }
 
@@ -144,6 +145,7 @@ pub type CreateTargetResponse = CDPResponse<CreateTargetBody>;
 pub type AttachToTargetResponse = CDPResponse<AttachToTargetBody>;
 pub type PageNavigateResponse = CDPResponse<PageNavigateBody>;
 pub type GetDocumentResponse = CDPResponse<GetDocumentBody>;
+pub type ResolveNodeResponse = CDPResponse<ResolveNodeBody>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CDPResponse<T: Clone> {
@@ -164,6 +166,12 @@ where
     pub fn body(&self) -> T {
         self.result.clone()
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ResolveNodeBody {
+    pub object: RemoteObject,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

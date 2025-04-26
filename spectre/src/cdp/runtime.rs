@@ -28,6 +28,7 @@ pub struct ExceptionDetails {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RemoteObject {
+    pub object_id: String,
     #[serde(rename = "type")]
     pub object_type: RemoteObjectType,
     /// String representation of the object

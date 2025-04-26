@@ -1,6 +1,6 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CDPMessage, CDPMethod, GetDocumentResponse, GetTargetResponse, PageNavigateResponse
+    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentResponse, GetTargetResponse, PageNavigateResponse, ResolveNodeBody
 };
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
@@ -141,20 +141,30 @@ impl CDPSession {
 	/// 
 	/// # Example
 	/// ```
-	/// use spectre::{Browser,Page,Result,cdp::CDPConnection};
+	/// use spectre::{Browser,Result};
 	/// 
 	/// #[tokio::main]
 	/// async fn main() -> Result<()>{
-	///     let browser = Browser::launch().await?;
-	///     let connection = 
+	///     let mut browser = Browser::launch().await?;
+	///     let mut session = browser.get_session().await?; 
+	/// 
+	///     // Resolve the root node
+	///     let response = session.get_dom(-1).await?;
+	///     let root = response.body().root;
+	///     let response = session.resolve_node(root.node_id).await?;
+	///     let object = response.body().object;
 	///     
-	///     println!("Hello world");
-	///     panic!("");
+	///     assert_eq!(object.description,"#document");
+	///     Ok(())
 	/// }
 	/// ```
-    pub async fn resolve_node(&mut self, depth: i32) -> Result<GetDocumentResponse> {
-        self.send(CDPMethod::GetDocument {
-            depth
+    pub async fn resolve_node(
+		&mut self, 
+		node_id: i32
+	) -> Result<CDPResponse<ResolveNodeBody>> 
+	{
+        self.send(CDPMethod::ResolveNode {
+            node_id
         })
         .await
     }
