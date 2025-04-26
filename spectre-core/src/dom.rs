@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq,Default)]
 #[serde(rename_all = "camelCase")]
 pub struct DomNode {
     pub node_id: i32,
@@ -17,25 +17,29 @@ impl DomNode {
     /// Returns the first [`DomNode`] that matches the name
     pub fn get_by_name(&self, name: &NodeName) -> Option<Self> {
         if &self.node_name == name {
-            return Some(self.clone());
+			return Some(self.clone());
         }
-
+		
         for child in &self.children {
-            if child.get_by_name(name).is_some() {
-                return Some(*child.clone());
-            }
+			if &child.node_name == name{
+				return Some(*child.clone());
+			}
+
+			child.get_by_name(name);
         }
 
         None
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug,Clone, PartialEq, Eq, PartialOrd, Ord,Default)]
+#[derive(Serialize,Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum NodeName {
     /// The root document
     #[serde(rename = "#document")]
-    Document,
+    #[default]
+	Document,
     /// Inner text
     #[serde(rename = "#text")]
     Text,
@@ -50,6 +54,7 @@ pub enum NodeName {
     H4,
     H5,
     H6,
+	Br,
     Img,
     Div,
     // FIXME this is breaks serialization, it's the only
@@ -112,4 +117,40 @@ pub enum NodeName {
     // Any unknown or custom elements
     #[serde(untagged)]
     Unknown(String),
+}
+
+
+#[cfg(test)]
+mod tests{
+    use super::*;
+
+	#[test]
+	fn get_dom_node(){
+		let div_id:i32 = rand::random();
+		let link_id:i32 = rand::random();
+		
+		let link = DomNode{
+			node_id: link_id,
+			node_name: NodeName::A,
+			..Default::default()
+		};
+
+		let div = DomNode{
+			node_id: div_id,
+			node_name: NodeName::Div,
+			children: vec![Box::new(link)],
+			..Default::default()
+		};
+
+		let root = DomNode{
+			children: vec![Box::new(div)],
+			..Default::default()
+		};
+
+		let div = root.get_by_name(&NodeName::Div);
+		assert_eq!(div.unwrap().node_id,div_id);
+
+		let img = root.get_by_name(&NodeName::Img);
+		assert!(img.is_none());
+	}
 }
