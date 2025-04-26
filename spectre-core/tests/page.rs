@@ -3,13 +3,20 @@ use spectre_core::browser::Browser;
 use spectre_core::dom::NodeName;
 
 #[tokio::test]
-async fn get_dom() -> Result<()>{ 
+async fn get_by_class() -> Result<()>{ 
 	let mut browser = Browser::launch().await?;
-    let mut page = browser.goto(EMPTY_PAGE).await?;
+    let mut page = browser.new_page().await?;
+	page.navigate("https://blank.org/").await?;
 
-    let root = page.get_dom().await?;
-	dbg!(&root);
-	
+	let expr = "
+		let element = document.createElement('button');
+		element.className = 'btn';
+		document.body.appendChild(element);
+	";
+
+	page.evaluate(expr).await?;
+
+	let button = page.get_by_class("btn").await?;
 	Ok(())
 }
 

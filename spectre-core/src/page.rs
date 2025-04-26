@@ -1,6 +1,6 @@
 use crate::{
     cdp::{
-        CDPConnection, CDPMessage, CDPMethod, CDPSession, GetDocumentResponse, PageNavigateResponse, ScreenshotFormat
+        runtime::EvaluateResponse, CDPConnection, CDPMessage, CDPMethod, CDPSession, GetDocumentResponse, PageNavigateResponse, ScreenshotFormat
     }, dom::{DomNode, NodeName}, Result
 };
 use serde_json::Value;
@@ -32,10 +32,49 @@ impl Page {
     pub async fn get_dom(&mut self) -> Result<DomNode> {
         // Set to -1 to get all sub nodes.
         let method = CDPMethod::GetDocument { depth: -1 };
+        let response: Value = self.session.send(method.clone()).await?;
+		dbg!(response);
         let response: GetDocumentResponse = self.session.send(method).await?;
         let root = response.body().root;
 
         Ok(root)
+    }
+
+	pub async fn evaluate(&mut self,expr: &str) -> Result<EvaluateResponse>{
+		self.session.evaluate(expr).await
+	}
+
+    /// Get an element by it's name.
+    pub async fn get_by_tag(&mut self, tag: &str) -> Result<Option<DomNode>> {
+        let expr = format!("
+			document.getElementsByTagName('{}')
+		",tag);
+
+		let result = self.session.evaluate(&expr).await?;
+		dbg!(&result);
+
+        Ok(None)
+    }
+
+    /// Get an element by it's class name.
+	/// 
+	/// # Example
+	/// 
+	/// ```no_run
+	/// use spectre_core::{Page,Result};
+	/// 
+	/// #[tokio::main]
+	/// async fn main() -> Result<()>{
+	///     let page = Page::new("").await?;
+	///     let button = page.get_by_class("btn-primary").await?;
+	///     
+	///     Ok(())
+	/// }
+	/// ```
+    pub async fn get_by_class(&mut self, class_name: &str) -> Result<Option<DomNode>> {
+        let root = self.get_dom().await?;
+		dbg!(root);
+        Ok(None)
     }
 
     /// Get an element by it's name.
@@ -44,12 +83,13 @@ impl Page {
         Ok(root.get_by_name(&name))
     }
 
-    pub async fn navigate(&mut self) -> Result<()> {
+    pub async fn navigate(&mut self,url: &str) -> Result<()> {
         let method = CDPMethod::Navigate {
-            url: String::from("https://youtube.com"),
+            url: String::from(url),
         };
-        let response: PageNavigateResponse = self.session.send(method).await?;
-        Ok(())
+        let _: PageNavigateResponse = self.session.send(method).await?;
+
+		Ok(())
     }
 
 }
