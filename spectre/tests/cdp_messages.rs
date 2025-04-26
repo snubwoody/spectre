@@ -1,7 +1,7 @@
 //! Test that all CDP messages and their
 //! responses are parsed correctly
 use serde_json::Value;
-use spectre_core::{
+use spectre::{
     Result,
     browser::Browser,
     cdp::{

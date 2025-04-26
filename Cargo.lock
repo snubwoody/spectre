@@ -1993,9 +1993,18 @@ dependencies = [
 name = "spectre"
 version = "0.1.0"
 dependencies = [
- "spectre-core",
+ "futures-util",
+ "image",
+ "log",
+ "rand 0.9.1",
+ "reqwest",
+ "serde",
+ "serde_json",
  "spectre-macros",
+ "thiserror 2.0.12",
  "tokio",
+ "tokio-tungstenite",
+ "zip",
 ]
 
 [[package]]
@@ -2004,25 +2013,8 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "reqwest",
- "spectre-core",
+ "spectre",
  "tokio",
- "zip",
-]
-
-[[package]]
-name = "spectre-core"
-version = "0.1.0"
-dependencies = [
- "futures-util",
- "image",
- "log",
- "rand 0.9.1",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.12",
- "tokio",
- "tokio-tungstenite",
  "zip",
 ]
 
@@ -2032,7 +2024,6 @@ version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "spectre-core",
  "syn",
 ]
 

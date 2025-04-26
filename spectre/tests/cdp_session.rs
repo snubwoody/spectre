@@ -1,5 +1,5 @@
 use serde_json::json;
-use spectre_core::{
+use spectre::{
     EMPTY_PAGE, Error, Result,
     browser::Browser,
     cdp::{CDPConnection, CDPMethod, GetTargetResponse},

@@ -6,10 +6,8 @@ use crate::{
 		CDPSession, 
 		GetDocumentResponse, 
 		PageNavigateResponse, 
-		ScreenshotFormat
     }, dom::{DomNode, NodeName}, Result
 };
-use serde_json::Value;
 
 // TODO impl Drop
 
@@ -65,7 +63,7 @@ impl Page {
 	/// # Example
 	/// 
 	/// ```no_run
-	/// use spectre_core::{Page,Result};
+	/// use spectre::{Page,Result};
 	/// 
 	/// #[tokio::main]
 	/// async fn main() -> Result<()>{

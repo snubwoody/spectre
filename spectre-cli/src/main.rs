@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand, ValueEnum};
-pub use spectre_core::Error;
+pub use spectre::Error;
 use std::io::Cursor;
 
 #[derive(Debug, Parser)]

@@ -106,7 +106,7 @@ impl CDPSession {
 	/// 
 	/// # Example
 	/// ```
-	/// use spectre_core::{
+	/// use spectre::{
 	///     Browser,
 	///     Page,
 	///     Result,
@@ -141,7 +141,7 @@ impl CDPSession {
 	/// 
 	/// # Example
 	/// ```
-	/// use spectre_core::{Browser,Page,Result,CDPConnection};
+	/// use spectre::{Browser,Page,Result,cdp::CDPConnection};
 	/// 
 	/// #[tokio::main]
 	/// async fn main() -> Result<()>{

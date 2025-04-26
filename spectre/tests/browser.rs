@@ -1,4 +1,4 @@
-use spectre_core::{Browser, Result};
+use spectre::{Browser, Result};
 
 #[tokio::test]
 async fn create_page() -> Result<()> {

@@ -2,7 +2,6 @@
 resolver = "3"
 members = [ 
 	"spectre-cli",
-	"spectre-core", 
 	"spectre-macros", 
 	"spectre"
 ]

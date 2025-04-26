@@ -7,5 +7,5 @@ edition = "2024"
 tokio = {workspace = true}
 zip = {workspace = true}
 reqwest = {workspace = true}
-spectre-core = {path = "../spectre-core"}
+spectre = {path = "../spectre"}
 clap = {version = "4.5.37",features = ["derive"]}
