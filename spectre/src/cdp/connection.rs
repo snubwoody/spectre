@@ -44,7 +44,7 @@ impl CDPConnection {
     }
 
     /// Send a message
-    pub async fn send<T>(&mut self, message: CDPMessage) -> Result<T>
+    pub async fn send<T>(&self, message: CDPMessage) -> Result<T>
     where
         T: DeserializeOwned,
     {
@@ -193,7 +193,7 @@ impl CDPSession {
         }
     }
 
-    pub async fn send<T>(&mut self, method: CDPMethod) -> Result<T>
+    pub async fn send<T>(&self, method: CDPMethod) -> Result<T>
     where
         T: DeserializeOwned,
     {
