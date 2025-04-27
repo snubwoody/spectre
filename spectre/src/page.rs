@@ -72,48 +72,6 @@ impl Page {
         self.session.evaluate(expr).await
     }
 
-    /// Get an element by it's name.
-    pub async fn get_by_tag(&mut self, tag: &str) -> Result<Option<DomNode>> {
-        let expr = format!(
-            "
-			document.getElementsByTagName('{}')
-		",
-            tag
-        );
-
-        let result = self.session.evaluate(&expr).await?;
-        dbg!(&result);
-
-        Ok(None)
-    }
-
-    /// Get an element by it's class name.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use spectre::{Page,Result};
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<()>{
-    ///     let page = Page::new("").await?;
-    ///     let button = page.get_by_class("btn-primary").await?;
-    ///     
-    ///     Ok(())
-    /// }
-    /// ```
-    pub async fn get_by_class(&mut self, class_name: &str) -> Result<Option<DomNode>> {
-        let root = self.get_dom().await?;
-        dbg!(root);
-        Ok(None)
-    }
-
-    /// Get an element by it's name.
-    pub async fn get_by_name(&mut self, name: NodeName) -> Result<Option<DomNode>> {
-        let root = self.get_dom().await?;
-        Ok(root.get_by_name(&name))
-    }
-
     pub async fn navigate(&mut self, url: &str) -> Result<()> {
         let method = CDPMethod::Navigate {
             url: String::from(url),
