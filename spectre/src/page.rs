@@ -1,12 +1,10 @@
 use crate::{
+    Error, Result,
     cdp::{
-        runtime::EvaluateResponse, 
-		CDPConnection, 
-		CDPMethod, 
-		CDPSession, 
-		GetDocumentResponse, 
-		PageNavigateResponse
-    }, dom::{DomNode, Element}, Error, Result
+        CDPConnection, CDPMethod, CDPSession, GetDocumentResponse, PageNavigateResponse,
+        runtime::EvaluateResponse,
+    },
+    dom::{DomNode, Element},
 };
 
 #[derive(Debug)]
@@ -26,46 +24,48 @@ impl Page {
         })
     }
 
-	/// Get the url of the page.
-	/// 
-	/// # Example
-	/// 
-	/// ```
-	/// use spectre::{Browser,Page,Result};
-	/// 
-	/// #[tokio::main]
-	/// async fn main() -> Result<()>{
-	///     let mut browser = Browser::start().await?;
-	///     let page = browser.goto("https://www.youtube.com").await?;
-	///     
-	///     let url = page.url().await?;
-	///     assert_eq!(&url,"https://www.youtube.com/");
-	///     
-	///     Ok(())
-	/// }
-	/// ```
-	pub async fn url(&self) -> Result<String>{
-		let response = self.session.evaluate("document.URL").await?;
-		let body = response.body();
-		let value = body
-			.result
-			.value
-			.ok_or(Error::PageError(String::from("Failed to get page url")))?;
-		// FIXME make above error more descriptive
-		
-		// FIXME do not unwrap
-		let url = value.as_str().unwrap();
+    /// Get the url of the page.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use spectre::{Browser,Page,Result};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()>{
+    ///     let mut browser = Browser::start().await?;
+    ///     let page = browser.goto("https://www.youtube.com").await?;
+    ///     
+    ///     let url = page.url().await?;
+    ///     assert_eq!(&url,"https://www.youtube.com/");
+    ///     
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn url(&self) -> Result<String> {
+        let response = self.session.evaluate("document.URL").await?;
+        let body = response.body();
+        let value = body
+            .result
+            .value
+            .ok_or(Error::PageError(String::from("Failed to get page url")))?;
+        // FIXME make above error more descriptive
 
-		Ok(url.to_owned())
-	}
+        // FIXME do not unwrap
+        let url = value.as_str().unwrap();
 
-	pub async fn get_by_class(&self,class: &str) -> Result<Option<Element>>{
-		let root = self.get_dom().await?;
-		let element = self.session
-			.query_selector(root.node_id, &format!(".{class}")).await?;
-		
-		Ok(element)
-	}
+        Ok(url.to_owned())
+    }
+
+    pub async fn get_by_class(&self, class: &str) -> Result<Option<Element>> {
+        let root = self.get_dom().await?;
+        let element = self
+            .session
+            .query_selector(root.node_id, &format!(".{class}"))
+            .await?;
+
+        Ok(element)
+    }
 
     pub fn endpoint(&self) -> &str {
         &self.endpoint

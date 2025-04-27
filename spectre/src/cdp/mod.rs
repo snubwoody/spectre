@@ -127,14 +127,14 @@ pub enum CDPMethod {
     #[serde(rename = "DOM.resolveNode")]
     #[serde(rename_all = "camelCase")]
     ResolveNode { node_id: i32 },
-    /// Runs `document.querySelector` on the given node. See the 
-	/// [mdn docs](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector)
-	/// for more details.
+    /// Runs `document.querySelector` on the given node. See the
+    /// [mdn docs](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector)
+    /// for more details.
     ///
     /// Corresponds to [`DOM.querySelector`](https://vanilla.aslushnikov.com/?DOM.querySelector)
     #[serde(rename = "DOM.querySelector")]
     #[serde(rename_all = "camelCase")]
-    QuerySelector { node_id: i32,selector:String },
+    QuerySelector { node_id: i32, selector: String },
 }
 
 /// Screenshot image formats supported by the browser
@@ -204,7 +204,7 @@ pub struct GetDocumentBody {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all="camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct QuerySelectorBody {
     pub node_id: i32,
 }

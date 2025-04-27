@@ -75,20 +75,24 @@ async fn query_selector_handle_missing_element() -> Result<()> {
     let session = connection.create_session().await?;
 
     let response = session.get_dom(-1).await?;
-	let root = response.body().root;
-	
-	let element = session.query_selector(root.node_id, ".very-unique-class").await?;
-	assert!(element.is_none());
-	
-	let expr = "
+    let root = response.body().root;
+
+    let element = session
+        .query_selector(root.node_id, ".very-unique-class")
+        .await?;
+    assert!(element.is_none());
+
+    let expr = "
 		let element = document.createElement('div');
 		element.className = 'very-unique-class';
 		document.body.appendChild(element);
 	";
-		
-	session.evaluate(expr).await?;
-	let element = session.query_selector(root.node_id, ".very-unique-class").await?;
-	assert!(element.is_some());
 
-	Ok(())
+    session.evaluate(expr).await?;
+    let element = session
+        .query_selector(root.node_id, ".very-unique-class")
+        .await?;
+    assert!(element.is_some());
+
+    Ok(())
 }
