@@ -1,7 +1,12 @@
 use crate::{
     cdp::{
-        runtime::EvaluateResponse, CDPConnection, CDPMethod, CDPSession, GetDocumentResponse, PageNavigateResponse
-    }, dom::{DomNode, NodeName}, Error, Result
+        runtime::EvaluateResponse, 
+		CDPConnection, 
+		CDPMethod, 
+		CDPSession, 
+		GetDocumentResponse, 
+		PageNavigateResponse
+    }, dom::{DomNode, Element}, Error, Result
 };
 
 #[derive(Debug)]
@@ -54,12 +59,20 @@ impl Page {
 		Ok(url.to_owned())
 	}
 
+	pub async fn get_by_class(&self,class: &str) -> Result<Option<Element>>{
+		let root = self.get_dom().await?;
+		let element = self.session
+			.query_selector(root.node_id, &format!(".{class}")).await?;
+		
+		Ok(element)
+	}
+
     pub fn endpoint(&self) -> &str {
         &self.endpoint
     }
 
     /// Get the whole DOM
-    pub async fn get_dom(&mut self) -> Result<DomNode> {
+    pub async fn get_dom(&self) -> Result<DomNode> {
         // Set to -1 to get all sub nodes.
         let method = CDPMethod::GetDocument { depth: -1 };
         let response: GetDocumentResponse = self.session.send(method).await?;

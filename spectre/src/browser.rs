@@ -122,7 +122,7 @@ impl Browser {
         Ok(session)
     }
 
-    pub async fn new_page(&mut self) -> Result<Page> {
+    pub async fn new_page(&self) -> Result<Page> {
         let client = Client::new();
         let resp = client
             .put(format!(
