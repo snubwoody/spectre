@@ -58,27 +58,7 @@ impl CDPMessage {
             },
         }
     }
-
-    pub fn screenshot(id: i32, session_id: &str, format: ScreenshotFormat) -> Self {
-        Self {
-            id,
-            session_id: Some(String::from(session_id)),
-            method: CDPMethod::Screenshot { format },
-        }
-    }
-
-    /// Evaluate JS in the browser.
-    pub fn evaluate(id: i32, session_id: &str, expression: &str) -> Self {
-        Self {
-            id,
-            session_id: Some(session_id.to_string()),
-            method: CDPMethod::Evaluate {
-                expression: expression.to_string(),
-                await_promise: true,
-            },
-        }
-    }
-
+	
     /// Get the json representation of the message
     pub fn json(&self) -> Result<Value> {
         let json = serde_json::to_value(self)?;
@@ -135,6 +115,12 @@ pub enum CDPMethod {
     #[serde(rename = "DOM.querySelector")]
     #[serde(rename_all = "camelCase")]
     QuerySelector { node_id: i32, selector: String },
+    /// Get the box model for the given node.
+    ///
+    /// Corresponds to [`DOM.querySelector`](https://vanilla.aslushnikov.com/?DOM.getBoxModel)
+    #[serde(rename = "DOM.getBoxModel")]
+    #[serde(rename_all = "camelCase")]
+    GetBoxModel { node_id: i32 },
 }
 
 /// Screenshot image formats supported by the browser
@@ -275,7 +261,7 @@ mod tests {
         let browser = Browser::start().await?;
         let ws_url = browser.url();
 
-        let mut conn = CDPConnection::new(ws_url).await?;
+        let conn = CDPConnection::new(ws_url).await?;
         let message = CDPMessage::root(2, CDPMethod::GetTargets);
         let _: GetTargetResponse = conn.send(message).await?;
 
@@ -287,8 +273,8 @@ mod tests {
         let browser = Browser::start().await?;
         let ws_url = browser.url();
 
-        let mut conn1 = CDPConnection::new(ws_url).await?;
-        let mut conn2 = CDPConnection::new(ws_url).await?;
+        let conn1 = CDPConnection::new(ws_url).await?;
+        let conn2 = CDPConnection::new(ws_url).await?;
 
         let _: GetTargetResponse = conn1
             .send(CDPMessage::root(2, CDPMethod::GetTargets))

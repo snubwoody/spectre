@@ -15,6 +15,16 @@ async fn create_session() -> Result<()> {
 }
 
 #[tokio::test]
+async fn get_box_model() -> Result<()> {
+    let browser = Browser::start().await?;
+    let connection = CDPConnection::new(browser.url()).await?;
+    let session = connection.create_session().await?;
+
+    let root = session.get_dom(-1).await?;
+    Ok(())
+}
+
+#[tokio::test]
 async fn navigate() -> Result<()> {
     let browser = Browser::start().await?;
     let connection = CDPConnection::new(browser.url()).await?;

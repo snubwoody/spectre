@@ -28,7 +28,7 @@ impl CDPConnection {
         Ok(Self { stream })
     }
 
-    pub async fn create_session(mut self) -> Result<CDPSession> {
+    pub async fn create_session(self) -> Result<CDPSession> {
         let response: GetTargetResponse = self.send(CDPMessage::get_targets(1)).await?;
         let targets = response.body().targets;
 
@@ -177,7 +177,8 @@ impl CDPSession {
     ///
     ///     // Get the `<body>` element
     ///     let body = session.query_selector(root.node_id,"body").await?;
-    ///
+    ///     assert!(body.is_some());
+	/// 
     ///     Ok(())
     /// }
     /// ```
@@ -197,6 +198,17 @@ impl CDPSession {
                 Ok(Some(element))
             }
         }
+    }
+
+    pub async fn get_box_model(&self, node_id: i32) -> Result<()> {
+        let method = CDPMethod::GetBoxModel {
+            node_id,
+        };
+
+        let response: CDPResponse<Value> = self.send(method).await?;
+
+		dbg!(response);
+		Ok(())
     }
 
     /// Evaluate javascript string in the browser

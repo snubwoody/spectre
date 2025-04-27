@@ -8,7 +8,7 @@ async fn get_by_class() -> Result<()> {
     let browser = Browser::start().await?;
     let mut page = browser.new_page().await?;
 
-    let element = page.get_by_class(&class).await?;
+    let element = page.locate_by_class(&class).await?;
     assert!(element.is_none());
 
     let expr = format!(
@@ -21,7 +21,7 @@ async fn get_by_class() -> Result<()> {
 
     page.evaluate(&expr).await?;
 
-    let element = page.get_by_class(&class).await?;
+    let element = page.locate_by_class(&class).await?;
     assert!(element.is_some());
 
     Ok(())
