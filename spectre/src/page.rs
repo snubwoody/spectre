@@ -57,7 +57,24 @@ impl Page {
         Ok(url.to_owned())
     }
 
-    pub async fn get_by_class(&self, class: &str) -> Result<Option<Element>> {
+	/// Locate the first element whose class name matches
+	/// the input class.
+	/// 
+	/// # Example
+	/// ```
+	/// use spectre::{Result,Page,Browser};
+	/// 
+	/// #[tokio::main]
+	/// async fn main() -> Result<()>{
+	///     let mut browser = Browser::start().await?;
+	///     let page = browser.new_page().await?;
+	/// 
+	///     let element = page.locate_by_class("does-not-exist").await?;
+	///     assert!(element.is_none());
+	///     Ok(())
+	/// }
+	/// ```
+    pub async fn locate_by_class(&self, class: &str) -> Result<Option<Element>> {
         let root = self.get_dom().await?;
         let element = self
             .session
