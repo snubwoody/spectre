@@ -1,8 +1,8 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentResponse,
-    GetTargetResponse, PageNavigateResponse, ResolveNodeBody,
+    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentResponse, GetTargetResponse, PageNavigateResponse, QuerySelectorBody, ResolveNodeBody
 };
+use crate::dom::Element;
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
 use serde::de::DeserializeOwned;
@@ -156,6 +156,52 @@ impl CDPSession {
     /// ```
     pub async fn resolve_node(&self, node_id: i32) -> Result<CDPResponse<ResolveNodeBody>> {
         self.send(CDPMethod::ResolveNode { node_id }).await
+    }
+
+    /// Run `document.querySelector` on the given node and 
+	/// return the matched element id;
+    ///
+    /// # Example
+    /// ```
+    /// use spectre::{Browser,Result};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<()>{
+    ///     let mut browser = Browser::start().await?;
+    ///     let mut session = browser.get_session().await?;
+    ///
+    ///     // Resolve the root node
+    ///     let response = session.get_dom(-1).await?;
+    ///     let root = response.body().root;
+	/// 
+	///     // Get the `<body>` element
+    ///     let body = session.query_selector(root.node_id,"body").await?;
+	///
+	///     Ok(())
+    /// }
+    /// ```
+    pub async fn query_selector(
+		&self, 
+		node_id: i32,
+		selector: &str
+	) -> Result<Option<Element>> {
+		let method = CDPMethod::QuerySelector { 
+			node_id, 
+			selector: selector.to_owned()
+		};
+
+        let response: CDPResponse<QuerySelectorBody> = self.send(method).await?;
+
+		// returns 0 if no node is found, so match and return None
+		match response.body().node_id{
+			0 => {
+				Ok(None)
+			},
+			id =>{
+				let element = Element::new(id, self.clone());
+				Ok(Some(element))
+			}
+		}
     }
 
     /// Evaluate javascript string in the browser

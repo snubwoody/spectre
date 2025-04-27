@@ -123,13 +123,21 @@ pub enum CDPMethod {
     },
     /// Compiles an expression into a script.
     ///
-    /// Corresponds to [`Runtime.compileScript`]
-    /// (https://vanilla.aslushnikov.com/?Dom.resolveNode)
+    /// Corresponds to [`Runtime.compileScript`](https://vanilla.aslushnikov.com/?Dom.resolveNode)
     #[serde(rename = "DOM.resolveNode")]
     #[serde(rename_all = "camelCase")]
     ResolveNode { node_id: i32 },
+    /// Runs `document.querySelector` on the given node. See the 
+	/// [mdn docs](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector)
+	/// for more details.
+    ///
+    /// Corresponds to [`DOM.querySelector`](https://vanilla.aslushnikov.com/?DOM.querySelector)
+    #[serde(rename = "DOM.querySelector")]
+    #[serde(rename_all = "camelCase")]
+    QuerySelector { node_id: i32,selector:String },
 }
 
+/// Screenshot image formats supported by the browser
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ScreenshotFormat {
@@ -193,6 +201,12 @@ pub struct AttachToTargetBody {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GetDocumentBody {
     pub root: DomNode,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all="camelCase")]
+pub struct QuerySelectorBody {
+    pub node_id: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -7,15 +7,13 @@ use serde::{Deserialize, Serialize};
 pub struct Element {
     node_id: i32,
     session: CDPSession,
-    children: Vec<Element>,
 }
 
 impl Element {
-    pub fn new(node_id: i32, session: CDPSession, children: Vec<Element>) -> Self {
+    pub fn new(node_id: i32, session: CDPSession) -> Self {
         Self {
             node_id,
             session,
-            children,
         }
     }
 
@@ -101,7 +99,7 @@ impl DomNode {
             children.push(child_element);
         }
 
-        Element::new(self.node_id, session, children)
+        Element::new(self.node_id, session)
     }
 }
 
