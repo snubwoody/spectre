@@ -1,4 +1,7 @@
-//! Browser automation and testing library.
+//! Browser automation and testing library. Communication is done via
+//! the [chrome devtools protocol](https://chromedevtools.github.io/devtools-protocol/)
+//! which sends json messages back and forth. Currently only chrome is supported, but 
+//! firefox and safari support is planned.
 //! 
 //! # Getting started
 //! ```
