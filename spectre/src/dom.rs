@@ -69,36 +69,6 @@ pub struct DomNode {
     pub children: Vec<Box<DomNode>>,
 }
 
-impl DomNode {
-    /// Returns the first [`DomNode`] that matches the name
-    pub fn get_by_name(&self, name: &NodeName) -> Option<Self> {
-        if &self.node_name == name {
-            return Some(self.clone());
-        }
-
-        for child in &self.children {
-            if &child.node_name == name {
-                return Some(*child.clone());
-            }
-
-            child.get_by_name(name);
-        }
-
-        None
-    }
-
-    pub fn into_element(&self, session: CDPSession) -> Element {
-        let mut children = vec![];
-
-        for child in &self.children {
-            let child_element = child.into_element(session.clone());
-            children.push(child_element);
-        }
-
-        Element::new(self.node_id, session)
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum NodeName {
@@ -183,39 +153,4 @@ pub enum NodeName {
     // Any unknown or custom elements
     #[serde(untagged)]
     Unknown(String),
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn get_dom_node() {
-        let div_id: i32 = rand::random();
-        let link_id: i32 = rand::random();
-
-        let link = DomNode {
-            node_id: link_id,
-            node_name: NodeName::A,
-            ..Default::default()
-        };
-
-        let div = DomNode {
-            node_id: div_id,
-            node_name: NodeName::Div,
-            children: vec![Box::new(link)],
-            ..Default::default()
-        };
-
-        let root = DomNode {
-            children: vec![Box::new(div)],
-            ..Default::default()
-        };
-
-        let div = root.get_by_name(&NodeName::Div);
-        assert_eq!(div.unwrap().node_id, div_id);
-
-        let img = root.get_by_name(&NodeName::Img);
-        assert!(img.is_none());
-    }
 }
