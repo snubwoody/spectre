@@ -32,7 +32,7 @@ pub struct RemoteObject {
     #[serde(rename = "type")]
     pub object_type: RemoteObjectType,
     /// String representation of the object
-    pub description: String,
+    pub description: Option<String>,
     /// The object class name (for object types only)
     pub class_name: Option<String>,
     // TODO this has the 'any' type so replace with valid options

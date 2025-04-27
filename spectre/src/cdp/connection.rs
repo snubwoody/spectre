@@ -178,7 +178,7 @@ impl CDPSession {
                 } = details;
 
                 let value = body.result.value;
-                let description = body.result.description;
+                let description = body.result.description.unwrap_or_default();
 
                 let error = Error::RuntimeError {
                     line_number,

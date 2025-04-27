@@ -26,15 +26,6 @@ impl Element {
 		Ok(())
 	}
 
-	/// Get the url of the page.
-	/// 
-	/// # Example
-	/// 
-	pub async fn url(&self) -> Result<()>{
-
-		Ok(())
-	}
-
 
 	/// Get the attributes
 	/// 

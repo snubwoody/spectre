@@ -1,10 +1,7 @@
 use crate::{
-    Result,
     cdp::{
-        CDPConnection, CDPMethod, CDPSession, GetDocumentResponse, PageNavigateResponse,
-        runtime::EvaluateResponse,
-    },
-    dom::{DomNode, NodeName},
+        runtime::EvaluateResponse, CDPConnection, CDPMethod, CDPSession, GetDocumentResponse, PageNavigateResponse
+    }, dom::{DomNode, NodeName}, Error, Result
 };
 
 #[derive(Debug)]
@@ -23,6 +20,39 @@ impl Page {
             endpoint: String::from(url),
         })
     }
+
+	/// Get the url of the page.
+	/// 
+	/// # Example
+	/// 
+	/// ```
+	/// use spectre::{Browser,Page,Result};
+	/// 
+	/// #[tokio::main]
+	/// async fn main() -> Result<()>{
+	///     let mut browser = Browser::start().await?;
+	///     let page = browser.goto("https://www.youtube.com").await?;
+	///     
+	///     let url = page.url().await?;
+	///     assert_eq!(&url,"https://www.youtube.com/");
+	///     
+	///     Ok(())
+	/// }
+	/// ```
+	pub async fn url(&self) -> Result<String>{
+		let response = self.session.evaluate("document.URL").await?;
+		let body = response.body();
+		let value = body
+			.result
+			.value
+			.ok_or(Error::PageError(String::from("Failed to get page url")))?;
+		// FIXME make above error more descriptive
+		
+		// FIXME do not unwrap
+		let url = value.as_str().unwrap();
+
+		Ok(url.to_owned())
+	}
 
     pub fn endpoint(&self) -> &str {
         &self.endpoint

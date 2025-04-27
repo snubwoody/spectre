@@ -15,6 +15,8 @@ pub enum Error {
     InvalidResponse(String),
     #[error("{0}")]
     NavigationError(String),
+    #[error("{0}")]
+    PageError(String),
     /// An error that occured while evaluating javascript
     /// in browser
     #[error("Uncaught expection: {description}")]
@@ -24,7 +26,6 @@ pub enum Error {
         value: Option<Value>,
         description: String,
     },
-
     #[error("CDP Error: {message}")]
     CDPError { code: i32, message: String },
 
