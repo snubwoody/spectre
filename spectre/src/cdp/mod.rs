@@ -258,7 +258,7 @@ mod tests {
 
     #[tokio::test]
     async fn send_cdp_message() -> Result<()> {
-        let browser = Browser::launch().await?;
+        let browser = Browser::start().await?;
         let ws_url = browser.url();
 
         let mut conn = CDPConnection::new(ws_url).await?;
@@ -270,7 +270,7 @@ mod tests {
 
     #[tokio::test]
     async fn multiple_connections() -> Result<()> {
-        let browser = Browser::launch().await?;
+        let browser = Browser::start().await?;
         let ws_url = browser.url();
 
         let mut conn1 = CDPConnection::new(ws_url).await?;

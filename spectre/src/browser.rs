@@ -8,7 +8,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
 
-/// An instance of a browser. The browser is launched on a
+/// An instance of a browser. The browser is started on a
 /// local port and listens to json messages via websockets.
 ///
 /// # Start a new browser process
@@ -18,7 +18,7 @@ use std::process::{Child, Command, Stdio};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()>{
-///     let browser = Browser::launch().await?;
+///     let browser = Browser::start().await?;
 ///     Ok(())
 /// }
 /// ```
@@ -46,8 +46,8 @@ pub struct Browser {
 }
 
 impl Browser {
-    /// Launch a new browser
-    pub async fn launch() -> Result<Self> {
+    /// start a new browser
+    pub async fn start() -> Result<Self> {
         // Get any available port
         let listener = std::net::TcpListener::bind("0.0.0.0:0")?;
         let port = listener.local_addr()?.port();
@@ -108,7 +108,7 @@ impl Browser {
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()>{
-    ///     let mut browser = Browser::launch().await?;
+    ///     let mut browser = Browser::start().await?;
     ///     let session = browser.get_session().await;
     ///     
     ///     assert!(session.is_ok());
@@ -169,7 +169,7 @@ mod tests {
 
     #[tokio::test]
     async fn goto_page() -> Result<()> {
-        let mut browser = Browser::launch().await?;
+        let mut browser = Browser::start().await?;
         let _ = browser.goto("https://youtube.com").await?;
         let targets = browser.get_targets().await?;
         targets

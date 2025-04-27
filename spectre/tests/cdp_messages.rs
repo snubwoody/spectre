@@ -12,7 +12,7 @@ use spectre::{
 
 #[tokio::test]
 async fn get_targets() -> Result<()> {
-    let browser = Browser::launch().await?;
+    let browser = Browser::start().await?;
     let mut conn = CDPConnection::new(browser.url()).await?;
     let message = CDPMessage::root(1, CDPMethod::GetTargets);
     let response: GetTargetResponse = conn.send(message).await?;
@@ -23,7 +23,7 @@ async fn get_targets() -> Result<()> {
 
 #[tokio::test]
 async fn create_target() -> Result<()> {
-    let browser = Browser::launch().await?;
+    let browser = Browser::start().await?;
     let mut conn = CDPConnection::new(browser.url()).await?;
     let message = CDPMessage::root(
         1,
@@ -38,7 +38,7 @@ async fn create_target() -> Result<()> {
 
 #[tokio::test]
 async fn attach_to_target() -> Result<()> {
-    let browser = Browser::launch().await?;
+    let browser = Browser::start().await?;
     let mut conn = CDPConnection::new(browser.url()).await?;
     let message = CDPMessage::get_targets(1);
 
@@ -57,7 +57,7 @@ async fn attach_to_target() -> Result<()> {
 
 #[tokio::test]
 async fn page_navigate() -> Result<()> {
-    let browser = Browser::launch().await?;
+    let browser = Browser::start().await?;
     let mut conn = CDPConnection::new(browser.url()).await?;
     let message = CDPMessage::get_targets(1);
 
@@ -80,7 +80,7 @@ async fn page_navigate() -> Result<()> {
 
 #[tokio::test]
 async fn get_document() -> Result<()> {
-    let mut browser = Browser::launch().await?;
+    let mut browser = Browser::start().await?;
     let page = browser.goto("https://example.com").await?;
 
     let url = page.endpoint();
@@ -98,7 +98,7 @@ async fn get_document() -> Result<()> {
 
 #[tokio::test]
 async fn page_navigate_error() -> Result<()> {
-    let browser = Browser::launch().await?;
+    let browser = Browser::start().await?;
     let mut conn = CDPConnection::new(browser.url()).await?;
     let message = CDPMessage::get_targets(1);
 
@@ -122,7 +122,7 @@ async fn page_navigate_error() -> Result<()> {
 
 #[tokio::test]
 async fn runtime_evaluate() -> Result<()> {
-    let browser = Browser::launch().await?;
+    let browser = Browser::start().await?;
     let mut conn = CDPConnection::new(browser.url()).await?;
 
     let response: GetTargetResponse = conn.send(CDPMessage::get_targets(1)).await?;

@@ -1,4 +1,4 @@
-use crate::cdp::CDPSession;
+use crate::{cdp::CDPSession,Result};
 use serde::{Deserialize, Serialize};
 
 /// An element in the DOM, all elements are matched not just
@@ -11,13 +11,53 @@ pub struct Element {
 }
 
 impl Element {
-    fn new(node_id: i32, session: CDPSession, children: Vec<Element>) -> Self {
+    pub fn new(node_id: i32, session: CDPSession, children: Vec<Element>) -> Self {
         Self {
             node_id,
             session,
             children,
         }
     }
+
+	async fn resolve_node(&self) -> Result<()>{
+		let node = self.session.resolve_node(self.node_id).await?;
+		dbg!(node);
+
+		Ok(())
+	}
+
+	/// Get the url of the page.
+	/// 
+	/// # Example
+	/// 
+	pub async fn url(&self) -> Result<()>{
+
+		Ok(())
+	}
+
+
+	/// Get the attributes
+	/// 
+	/// # Example
+	/// ```
+	/// use spectre::{Result,Element,Browser,Page};
+	/// 
+	/// #[tokio::main]
+	/// async fn main() -> Result<()>{
+	///     let mut browser = Browser::start().await?;
+	///     let mut page = browser.new_page().await?;
+	///     let root = page.get_dom()
+	///         .await?;
+	/// 
+	///     let element = root.into_element();
+	///     element.get_attributes().await?;
+	///     Ok(())
+	/// }
+	/// ```
+	pub async fn get_attributes(&self) -> Result<()>{
+		self.resolve_node().await?;
+		Ok(())
+	}
 }
 
 /// Html attributes

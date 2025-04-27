@@ -90,7 +90,7 @@ impl CDPSession {
     }
 
     /// Navitate the page to a url
-    pub async fn navigate(&mut self, url: &str) -> Result<PageNavigateResponse> {
+    pub async fn navigate(&self, url: &str) -> Result<PageNavigateResponse> {
         self.send(CDPMethod::Navigate {
             url: url.to_string(),
         })
@@ -115,7 +115,7 @@ impl CDPSession {
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()>{
-    ///     let browser = Browser::launch().await?;
+    ///     let browser = Browser::start().await?;
     ///     let connection = CDPConnection::new(browser.url()).await?;
     ///     let mut session = connection.create_session().await?;
     ///     
@@ -128,7 +128,7 @@ impl CDPSession {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn get_dom(&mut self, depth: i32) -> Result<GetDocumentResponse> {
+    pub async fn get_dom(&self, depth: i32) -> Result<GetDocumentResponse> {
         self.send(CDPMethod::GetDocument { depth }).await
     }
 
@@ -141,7 +141,7 @@ impl CDPSession {
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()>{
-    ///     let mut browser = Browser::launch().await?;
+    ///     let mut browser = Browser::start().await?;
     ///     let mut session = browser.get_session().await?;
     ///
     ///     // Resolve the root node
@@ -154,12 +154,12 @@ impl CDPSession {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn resolve_node(&mut self, node_id: i32) -> Result<CDPResponse<ResolveNodeBody>> {
+    pub async fn resolve_node(&self, node_id: i32) -> Result<CDPResponse<ResolveNodeBody>> {
         self.send(CDPMethod::ResolveNode { node_id }).await
     }
 
     /// Evaluate javascript string in the browser
-    pub async fn evaluate(&mut self, expr: &str) -> Result<EvaluateResponse> {
+    pub async fn evaluate(&self, expr: &str) -> Result<EvaluateResponse> {
         let response: EvaluateResponse = self
             .send(CDPMethod::Evaluate {
                 expression: expr.to_string(),
