@@ -1,9 +1,8 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentResponse,
-    GetTargetResponse, PageNavigateResponse, QuerySelectorBody, ResolveNodeBody,
+    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentBody, GetDocumentResponse, GetTargetResponse, PageNavigateResponse, QuerySelectorBody, ResolveNodeBody
 };
-use crate::dom::Element;
+use crate::dom::{DomNode, Element};
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
 use serde::de::DeserializeOwned;
@@ -129,8 +128,11 @@ impl CDPSession {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn get_dom(&self, depth: i32) -> Result<GetDocumentResponse> {
-        self.send(CDPMethod::GetDocument { depth }).await
+    pub async fn get_dom(&self, depth: i32) -> Result<DomNode> {
+        let response: CDPResponse<GetDocumentBody> = 
+			self.send(CDPMethod::GetDocument { depth }).await?;
+		let root = response.result.root;
+		Ok(root)
     }
 
     /// Resolved the JS node object for a given node id.

@@ -84,8 +84,7 @@ async fn query_selector_handle_missing_element() -> Result<()> {
     let connection = CDPConnection::new(browser.url()).await?;
     let session = connection.create_session().await?;
 
-    let response = session.get_dom(-1).await?;
-    let root = response.body().root;
+    let root = session.get_dom(-1).await?;
 
     let element = session
         .query_selector(root.node_id, ".very-unique-class")
