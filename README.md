@@ -28,3 +28,14 @@ async fn main() -> Result<()>{
     Ok(())
 }
 ```
+
+## Internal
+
+### Commit messages
+
+- changed
+- fix
+- feat
+- chore
+- ci
+  
