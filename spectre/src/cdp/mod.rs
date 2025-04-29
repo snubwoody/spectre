@@ -58,7 +58,7 @@ impl CDPMessage {
             },
         }
     }
-	
+
     /// Get the json representation of the message
     pub fn json(&self) -> Result<Value> {
         let json = serde_json::to_value(self)?;

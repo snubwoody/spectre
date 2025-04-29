@@ -1,6 +1,8 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentBody, GetDocumentResponse, GetTargetResponse, PageNavigateResponse, QuerySelectorBody, ResolveNodeBody
+    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentBody,
+    GetDocumentResponse, GetTargetResponse, PageNavigateResponse, QuerySelectorBody,
+    ResolveNodeBody,
 };
 use crate::dom::{DomNode, Element};
 use crate::{Error, Result, error::CDPError};
@@ -127,10 +129,10 @@ impl CDPSession {
     /// }
     /// ```
     pub async fn get_dom(&self, depth: i32) -> Result<DomNode> {
-        let response: CDPResponse<GetDocumentBody> = 
-			self.send(CDPMethod::GetDocument { depth }).await?;
-		let root = response.result.root;
-		Ok(root)
+        let response: CDPResponse<GetDocumentBody> =
+            self.send(CDPMethod::GetDocument { depth }).await?;
+        let root = response.result.root;
+        Ok(root)
     }
 
     /// Resolved the JS node object for a given node id.
@@ -151,7 +153,7 @@ impl CDPSession {
     ///     let object = response.body().object;
     ///     
     ///     assert_eq!(
-	///         object.description,
+    ///         object.description,
     ///         Some("#document".to_string()),
     ///     );
     ///     Ok(())
@@ -179,7 +181,7 @@ impl CDPSession {
     ///     // Get the `<body>` element
     ///     let body = session.query_selector(root.node_id,"body").await?;
     ///     assert!(body.is_some());
-	/// 
+    ///
     ///     Ok(())
     /// }
     /// ```
@@ -202,14 +204,12 @@ impl CDPSession {
     }
 
     pub async fn get_box_model(&self, node_id: i32) -> Result<()> {
-        let method = CDPMethod::GetBoxModel {
-            node_id,
-        };
+        let method = CDPMethod::GetBoxModel { node_id };
 
         let response: CDPResponse<Value> = self.send(method).await?;
 
-		dbg!(response);
-		Ok(())
+        dbg!(response);
+        Ok(())
     }
 
     /// Evaluate javascript string in the browser
