@@ -13,5 +13,5 @@ target/
 
 # Temp downloaded files and folders
 chrome*
-.temp
-temp
+**/.temp
+**/.tmp

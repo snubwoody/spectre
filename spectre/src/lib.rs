@@ -18,6 +18,7 @@
 //! }
 //! ```
 mod browser;
+pub mod download;
 pub mod cdp;
 pub mod dom;
 mod error;
