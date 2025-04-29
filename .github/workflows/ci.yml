@@ -30,7 +30,6 @@ jobs:
       SPECTRE_PORT: 2000
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/cache@v4
         with:
           path: |
@@ -40,13 +39,10 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{runner.os}}-cargo-${{hashFiles('**/Cargo.lock')}}
-
       - name: Build utils
         run: cargo build -p spectre-cli --release
-
       - name: Download chrome
         run: target/release/spectre-cli.exe download chrome
-      
       - name: Run tests
         run: cargo test --no-fail-fast
   fmt:
@@ -56,7 +52,6 @@ jobs:
       SPECTRE_PORT: 2000
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/cache@v4
         with:
           path: |
@@ -66,7 +61,6 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{runner.os}}-cargo-${{hashFiles('**/Cargo.lock')}}
-
       - name: Cargo fmt
         run: cargo fmt --check
   clippy:
@@ -76,7 +70,6 @@ jobs:
       SPECTRE_PORT: 2000
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/cache@v4
         with:
           path: |
@@ -86,6 +79,5 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{runner.os}}-cargo-${{hashFiles('**/Cargo.lock')}}
-
       - name: Clippy
         run: cargo clippy -- -D warnings

@@ -21,24 +21,6 @@ impl Element {
         Ok(())
     }
 
-    /// Get the attributes
-    ///
-    /// # Example
-    /// ```
-    /// use spectre::{Result,Element,Browser,Page};
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<()>{
-    ///     let mut browser = Browser::start().await?;
-    ///     let mut page = browser.new_page().await?;
-    ///     let root = page.get_dom()
-    ///         .await?;
-    ///
-    ///     let element = root.into_element();
-    ///     element.get_attributes().await?;
-    ///     Ok(())
-    /// }
-    /// ```
     pub async fn get_attributes(&self) -> Result<()> {
         self.resolve_node().await?;
         Ok(())

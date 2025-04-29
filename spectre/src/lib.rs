@@ -21,6 +21,7 @@ mod browser;
 pub mod cdp;
 pub mod dom;
 mod error;
+mod web;
 mod page;
 pub use browser::Browser;
 pub use error::{Error, Result};

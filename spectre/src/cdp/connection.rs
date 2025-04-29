@@ -120,11 +120,9 @@ impl CDPSession {
     ///     let mut session = connection.create_session().await?;
     ///     
     ///     // Get child nodes up to 5 elements deep;
-    ///     let response = session.get_dom(5).await?;
+    ///     let root = session.get_dom(5).await?;
     ///
-    ///     let node_name = response.body().root.node_name;
-    ///
-    ///     assert_eq!(node_name,NodeName::Document);
+    ///     assert_eq!(root.node_name,NodeName::Document);
     ///     Ok(())
     /// }
     /// ```
@@ -136,7 +134,7 @@ impl CDPSession {
     }
 
     /// Resolved the JS node object for a given node id.
-    /// The object can than be used in other methods `Runtime.callFunctionOn`
+    /// The object can than be used in other methods e.g `Runtime.callFunctionOn`
     ///
     /// # Example
     /// ```
@@ -148,12 +146,14 @@ impl CDPSession {
     ///     let mut session = browser.get_session().await?;
     ///
     ///     // Resolve the root node
-    ///     let response = session.get_dom(-1).await?;
-    ///     let root = response.body().root;
+    ///     let root = session.get_dom(-1).await?;
     ///     let response = session.resolve_node(root.node_id).await?;
     ///     let object = response.body().object;
     ///     
-    ///     assert_eq!(object.description,"#document");
+    ///     assert_eq!(
+	///         object.description,
+    ///         Some("#document".to_string()),
+    ///     );
     ///     Ok(())
     /// }
     /// ```
@@ -174,8 +174,7 @@ impl CDPSession {
     ///     let mut session = browser.get_session().await?;
     ///
     ///     // Resolve the root node
-    ///     let response = session.get_dom(-1).await?;
-    ///     let root = response.body().root;
+    ///     let root = session.get_dom(-1).await?;
     ///
     ///     // Get the `<body>` element
     ///     let body = session.query_selector(root.node_id,"body").await?;
