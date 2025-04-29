@@ -1,8 +1,7 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentBody,
-    GetTargetResponse, PageNavigateResponse, QuerySelectorBody,
-    ResolveNodeBody,
+    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentBody, GetTargetResponse,
+    PageNavigateResponse, QuerySelectorBody, ResolveNodeBody,
 };
 use crate::dom::{DomNode, Element};
 use crate::{Error, Result, error::CDPError};
