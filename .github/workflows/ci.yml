@@ -6,7 +6,10 @@ on:
     branches: ["main"]
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [windows-latest,ubuntu-latest,macos-latest]
+    runs-on: ${{matrix.os}}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
@@ -45,7 +48,7 @@ jobs:
         run: cargo test
   fmt:
     name: Formatting
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       SPECTRE_PORT: 2000
     steps:
@@ -63,7 +66,7 @@ jobs:
         run: cargo fmt --check
   clippy:
     name: Linting
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       SPECTRE_PORT: 2000
     steps:
