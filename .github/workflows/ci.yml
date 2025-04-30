@@ -42,7 +42,7 @@ jobs:
       - name: Download chrome
         run: cargo run --release --bin spectre download chrome
       - name: Run tests
-        run: cargo test --no-fail-fast
+        run: cargo test
   fmt:
     name: Formatting
     runs-on: windows-latest
