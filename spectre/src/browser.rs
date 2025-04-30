@@ -7,8 +7,6 @@ use crate::{
 };
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use std::fs;
-use std::path::Path;
 use std::process::{Child, Command, Stdio};
 
 /// An instance of a browser. The browser is started on a

@@ -45,5 +45,19 @@ pub async fn install_chrome(path: &PathBuf) -> Result<(), Error> {
         }
     }
 
+    #[cfg(target_os="macos")]
+    let bin = "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
+    #[cfg(target_os="linux")]
+    let bin = "chrome-linux64/chrome";
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let file_path = spectre_dir.join(bin);
+        let mut perms = std::fs::metadata(file_path)?.permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(file_path, perm);
+    }
+
     Ok(())
 }
