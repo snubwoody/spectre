@@ -1,3 +1,4 @@
+use crate::Error;
 use crate::cdp::{CDPSession, WebSocketTarget};
 use crate::page::Page;
 use crate::{
@@ -7,6 +8,7 @@ use crate::{
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
+use std::time::Duration;
 
 /// An instance of a browser. The browser is started on a
 /// local port and listens to json messages via websockets.
@@ -49,13 +51,24 @@ impl Browser {
     /// start a new browser
     pub async fn start() -> Result<Self> {
         // Get any available port
-        let listener = std::net::TcpListener::bind("0.0.0.0:0")?;
+        let listener = std::net::TcpListener::bind("127.0.0.1:0")?;
         let port = listener.local_addr()?.port();
 
-        // TODO is this neccessary?
+        // Immediately drop the listener to free the port
         std::mem::drop(listener);
 
-        let child = Command::new("../chrome-win64/chrome.exe")
+        let home_path = home::home_dir().ok_or(Error::FailedToGetHomeDir)?;
+        let spectre_path = home_path.join(".spectre").join("browsers");
+
+        let chrome_path = if cfg!(target_os = "windows") {
+            spectre_path.join("chrome-win64/chrome.exe")
+        } else if cfg!(target_os = "macos") {
+            spectre_path.join("chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing")
+        } else {
+            spectre_path.join("chrome-linux64/chrome")
+        };
+
+        let child = Command::new(chrome_path)
             .args([
                 "--headless",
                 "--disable-gpu",
@@ -71,19 +84,32 @@ impl Browser {
             web_socket_debugger_url: String,
         }
 
-        let response = reqwest::get(format!("http://localhost:{}/json/version", port)).await?;
-        let body: ResponseBody = response.json().await?;
+        let mut interval = tokio::time::interval(Duration::from_millis(100));
+        let mut elapsed = Duration::default();
+        loop {
+            interval.tick().await;
+            match reqwest::get(format!("http://localhost:{}/json/version", port)).await {
+                Ok(response) => {
+                    let body: ResponseBody = response.json().await?;
+                    let ws_url = body.web_socket_debugger_url;
+                    let conn = CDPConnection::new(&ws_url).await?;
 
-        let ws_url = body.web_socket_debugger_url;
-        let conn = CDPConnection::new(&ws_url).await?;
-
-        Ok(Self {
-            process: child,
-            conn,
-            url: ws_url,
-            message_id: 0,
-            port,
-        })
+                    return Ok(Self {
+                        process: child,
+                        conn,
+                        url: ws_url,
+                        message_id: 0,
+                        port,
+                    });
+                }
+                Err(err) => {
+                    if elapsed > Duration::from_secs(3) {
+                        return Err(err.into());
+                    }
+                }
+            }
+            elapsed += interval.period();
+        }
     }
 
     pub fn url(&self) -> &str {

@@ -20,6 +20,7 @@
 mod browser;
 pub mod cdp;
 pub mod dom;
+pub mod download;
 mod error;
 mod page;
 mod web;

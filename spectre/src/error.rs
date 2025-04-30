@@ -11,6 +11,10 @@ pub enum Error {
     FailedToSendMessage,
     #[error("Failed to create new page")]
     FailedToCreatePage,
+    #[error("Failed to get home directory")]
+    FailedToGetHomeDir,
+    #[error("Could not locate chrome binary")]
+    MissingBinary,
     #[error("Failed to parse CDP response: {0}")]
     InvalidResponse(String),
     #[error("{0}")]
