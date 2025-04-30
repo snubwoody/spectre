@@ -50,7 +50,7 @@ impl Browser {
     /// start a new browser
     pub async fn start() -> Result<Self> {
         // Get any available port
-        let listener = std::net::TcpListener::bind("0.0.0.0:0")?;
+        let listener = std::net::TcpListener::bind("127.0.0.1:0")?;
         let port = listener.local_addr()?.port();
 
         // Immediately drop the listener to free the port
