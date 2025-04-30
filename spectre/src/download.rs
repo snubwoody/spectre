@@ -56,7 +56,7 @@ pub async fn install_chrome(path: &PathBuf) -> Result<(), Error> {
         let file_path = spectre_dir.join(bin);
         let mut perms = std::fs::metadata(file_path)?.permissions();
         perms.set_mode(0o755);
-        fs::set_permissions(file_path, perm);
+        fs::set_permissions(file_path, perms);
     }
 
     Ok(())
