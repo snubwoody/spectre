@@ -7,6 +7,7 @@ use crate::{
 };
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use std::fs;
 use std::process::{Child, Command, Stdio};
 
 /// An instance of a browser. The browser is started on a
@@ -58,7 +59,7 @@ impl Browser {
         let chrome_path = if cfg!(target_os="windows"){
             spectre_path.join("chrome-win64/chrome.exe")
         }else if cfg!(target_os="macos") {
-            spectre_path.join("chrome-mac-arm64/Chrome.app/Contens/MacOS/Chrome")
+            spectre_path.join("chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing")
         }else{
             spectre_path.join("chrome-linux64/chrome")
         };
