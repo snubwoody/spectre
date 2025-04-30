@@ -52,9 +52,10 @@ pub async fn install_chrome(path: &Path) -> Result<(), Error> {
 
         #[cfg(unix)]
         {
+            use std::os::unix::fs::PermissionsExt;
             let mut perms = out_file.metadata()?.permissions();
             perms.set_mode(0o777);
-            out_file.set_permissions(perms);
+            out_file.set_permissions(perms)?;
         }
     }
 
