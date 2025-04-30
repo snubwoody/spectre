@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand, ValueEnum};
-use spectre::{Error,download::install_chrome};
+use spectre::{Error, download::install_chrome};
 
 #[derive(Debug, Parser)]
 #[command(version, about)]

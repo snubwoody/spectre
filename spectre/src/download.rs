@@ -8,14 +8,14 @@ pub async fn install_chrome(path: &PathBuf) -> Result<(), Error> {
 
     println!("Downloading chrome...");
 
-    #[cfg(target_os="linux")]
+    #[cfg(target_os = "linux")]
     let url = "https://storage.googleapis.com/chrome-for-testing-public/136.0.7103.49/linux64/chrome-linux64.zip";
-    
+
     // TODO add macos_x86 support
-    #[cfg(target_os="macos")]
+    #[cfg(target_os = "macos")]
     let url = "https://storage.googleapis.com/chrome-for-testing-public/136.0.7103.49/mac-arm64/chrome-mac-arm64.zip";
 
-    #[cfg(target_os="windows")]
+    #[cfg(target_os = "windows")]
     let url = "https://storage.googleapis.com/chrome-for-testing-public/135.0.7049.95/win64/chrome-win64.zip";
 
     let response = reqwest::get(url).await?;
@@ -45,9 +45,10 @@ pub async fn install_chrome(path: &PathBuf) -> Result<(), Error> {
         }
     }
 
-    #[cfg(target_os="macos")]
-    let bin = "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
-    #[cfg(target_os="linux")]
+    #[cfg(target_os = "macos")]
+    let bin =
+        "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
+    #[cfg(target_os = "linux")]
     let bin = "chrome-linux64/chrome";
 
     #[cfg(unix)]

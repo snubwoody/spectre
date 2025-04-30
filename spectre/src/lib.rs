@@ -18,9 +18,9 @@
 //! }
 //! ```
 mod browser;
-pub mod download;
 pub mod cdp;
 pub mod dom;
+pub mod download;
 mod error;
 mod page;
 mod web;

@@ -1,6 +1,6 @@
+use crate::Error;
 use crate::cdp::{CDPSession, WebSocketTarget};
 use crate::page::Page;
-use crate::Error;
 use crate::{
     Result,
     cdp::{CDPConnection, CDPMessage, CDPMethod, GetTargetResponse, Target},
@@ -59,12 +59,12 @@ impl Browser {
 
         let home_path = home::home_dir().ok_or(Error::FailedToGetHomeDir)?;
         let spectre_path = home_path.join(".spectre").join("browsers");
-        
-        let chrome_path = if cfg!(target_os="windows"){
+
+        let chrome_path = if cfg!(target_os = "windows") {
             spectre_path.join("chrome-win64/chrome.exe")
-        }else if cfg!(target_os="macos") {
+        } else if cfg!(target_os = "macos") {
             spectre_path.join("chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing")
-        }else{
+        } else {
             spectre_path.join("chrome-linux64/chrome")
         };
 
@@ -93,7 +93,7 @@ impl Browser {
                     let body: ResponseBody = response.json().await?;
                     let ws_url = body.web_socket_debugger_url;
                     let conn = CDPConnection::new(&ws_url).await?;
-            
+
                     return Ok(Self {
                         process: child,
                         conn,
@@ -101,9 +101,9 @@ impl Browser {
                         message_id: 0,
                         port,
                     });
-                },
+                }
                 Err(err) => {
-                    if elapsed > Duration::from_secs(3){
+                    if elapsed > Duration::from_secs(3) {
                         return Err(err.into());
                     }
                 }
