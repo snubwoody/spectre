@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest,ubuntu-latest,macos-latest]
     runs-on: ${{matrix.os}}
@@ -28,6 +29,7 @@ jobs:
   test:
     name: Test
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest,ubuntu-latest]
     runs-on: ${{matrix.os}}
