@@ -1,5 +1,6 @@
 use crate::cdp::{CDPSession, WebSocketTarget};
 use crate::page::Page;
+use crate::Error;
 use crate::{
     Result,
     cdp::{CDPConnection, CDPMessage, CDPMethod, GetTargetResponse, Target},
@@ -51,11 +52,21 @@ impl Browser {
         // Get any available port
         let listener = std::net::TcpListener::bind("0.0.0.0:0")?;
         let port = listener.local_addr()?.port();
+        let home_path = home::home_dir().ok_or(Error::FailedToGetHomeDir)?;
+        let spectre_path = home_path.join("./spectre/browsers");
+
+        let chrome_path = if cfg!(target_os="windows"){
+            spectre_path.join("chrome-win64/chrome.exe")
+        }else if cfg!(target_os="macos") {
+            spectre_path.join("chrome-mac-arm64/Chrome.app/Contens/MacOS/Chrome")
+        }else{
+            spectre_path.join("chrome-linux64/chrome")
+        };
 
         // TODO is this neccessary?
         std::mem::drop(listener);
 
-        let child = Command::new("../chrome-win64/chrome.exe")
+        let child = Command::new(chrome_path)
             .args([
                 "--headless",
                 "--disable-gpu",
