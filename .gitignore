@@ -2,16 +2,16 @@
 target/
 
 # dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+**/.env
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+**/.env.local
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
 # Temp downloaded files and folders
-chrome*
-**/.temp
-**/.tmp
+**/*chrome*
+**/*temp
+**/*tmp

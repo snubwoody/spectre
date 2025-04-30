@@ -38,31 +38,40 @@ pub async fn install_chrome(path: &Path) -> Result<(), Error> {
 
         if file.is_dir() {
             std::fs::create_dir_all(outpath)?;
-        } else {
-            if let Some(p) = outpath.parent() {
-                if !p.exists() {
-                    std::fs::create_dir_all(p)?;
-                }
+            continue;
+        }
+
+        // Create the parent directories if they don't exist
+        if let Some(parent) = outpath.parent() {
+            if !parent.exists() {
+                std::fs::create_dir_all(parent)?;
             }
-            let mut out_file = std::fs::File::create(&outpath)?;
-            std::io::copy(&mut file, &mut out_file)?;
+        }
+        let mut out_file = std::fs::File::create(&outpath)?;
+        std::io::copy(&mut file, &mut out_file)?;
+
+        #[cfg(unix)]
+        {
+            let mut perms = out_file.metadata()?.permissions();
+            perms.set_mode(0o777);
+            out_file.set_permissions(perms);
         }
     }
 
-    #[cfg(target_os = "macos")]
-    let bin =
-        "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
-    #[cfg(target_os = "linux")]
-    let bin = "chrome-linux64/chrome";
+    // #[cfg(target_os = "macos")]
+    // let bin =
+    //     "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
+    // #[cfg(target_os = "linux")]
+    // let bin = "chrome-linux64/chrome";
 
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let file_path = spectre_dir.join(bin);
-        let mut perms = std::fs::metadata(&file_path)?.permissions();
-        perms.set_mode(0o755);
-        fs::set_permissions(file_path, perms)?;
-    }
+    // #[cfg(unix)]
+    // {
+    //     use std::os::unix::fs::PermissionsExt;
+    //     let file_path = spectre_dir.join(bin);
+    //     let mut perms = std::fs::metadata(&file_path)?.permissions();
+    //     perms.set_mode(0o755);
+    //     fs::set_permissions(file_path, perms)?;
+    // }
 
     Ok(())
 }
