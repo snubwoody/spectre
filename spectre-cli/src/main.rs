@@ -19,6 +19,7 @@ enum Browser {
     Chrome,
 }
 
+// TODO improve messages and add a quiet flag
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let home_dir;
