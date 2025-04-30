@@ -1,5 +1,9 @@
 pub use crate::Error;
-use std::{fs, io::Cursor, path::Path};
+use std::{
+    fs::{self},
+    io::Cursor,
+    path::Path,
+};
 
 /// Install chrome for testing
 pub async fn install_chrome(path: &Path) -> Result<(), Error> {
@@ -57,7 +61,7 @@ pub async fn install_chrome(path: &Path) -> Result<(), Error> {
         let file_path = spectre_dir.join(bin);
         let mut perms = std::fs::metadata(&file_path)?.permissions();
         perms.set_mode(0o755);
-        fs::set_permissions(file_path, perms);
+        fs::set_permissions(file_path, perms)?;
     }
 
     Ok(())
