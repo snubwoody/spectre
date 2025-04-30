@@ -8,6 +8,7 @@ use crate::{
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
+use std::time::{Duration, Instant};
 
 /// An instance of a browser. The browser is started on a
 /// local port and listens to json messages via websockets.
@@ -83,19 +84,32 @@ impl Browser {
             web_socket_debugger_url: String,
         }
 
-        let response = reqwest::get(format!("http://localhost:{}/json/version", port)).await?;
-        let body: ResponseBody = response.json().await?;
-
-        let ws_url = body.web_socket_debugger_url;
-        let conn = CDPConnection::new(&ws_url).await?;
-
-        Ok(Self {
-            process: child,
-            conn,
-            url: ws_url,
-            message_id: 0,
-            port,
-        })
+        let mut interval = tokio::time::interval(Duration::from_millis(100));
+        let mut elapsed = Duration::default();
+        loop {
+            interval.tick().await;
+            match reqwest::get(format!("http://localhost:{}/json/version", port)).await {
+                Ok(response) => {
+                    let body: ResponseBody = response.json().await?;
+                    let ws_url = body.web_socket_debugger_url;
+                    let conn = CDPConnection::new(&ws_url).await?;
+            
+                    return Ok(Self {
+                        process: child,
+                        conn,
+                        url: ws_url,
+                        message_id: 0,
+                        port,
+                    });
+                },
+                Err(err) => {
+                    if elapsed > Duration::from_secs(3){
+                        return Err(err.into());
+                    }
+                }
+            }
+            elapsed += interval.period();
+        }
     }
 
     pub fn url(&self) -> &str {
