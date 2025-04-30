@@ -8,7 +8,7 @@ use crate::{
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 /// An instance of a browser. The browser is started on a
 /// local port and listens to json messages via websockets.

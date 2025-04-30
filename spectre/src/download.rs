@@ -1,8 +1,8 @@
 pub use crate::Error;
-use std::{fs, io::Cursor, path::PathBuf};
+use std::{fs, io::Cursor, path::Path};
 
 /// Install chrome for testing
-pub async fn install_chrome(path: &PathBuf) -> Result<(), Error> {
+pub async fn install_chrome(path: &Path) -> Result<(), Error> {
     let spectre_dir = path.join(".spectre/browsers");
     fs::create_dir_all(&spectre_dir)?;
 

@@ -22,11 +22,11 @@ enum Browser {
 // TODO improve messages and add a quiet flag
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let home_dir;
-    match home::home_dir() {
-        Some(dir) => home_dir = dir,
+    
+    let home_dir = match home::home_dir() {
+        Some(dir) => dir,
         None => return Err(Error::FailedToGetHomeDir),
-    }
+    };
 
     let args = Args::parse();
     match args.command {

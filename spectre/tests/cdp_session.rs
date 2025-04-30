@@ -21,7 +21,7 @@ async fn get_box_model() -> Result<()> {
     let session = connection.create_session().await?;
 
     let root = session.get_dom(-1).await?;
-    let _ = session.get_box_model(root.node_id).await?;
+    session.get_box_model(root.node_id).await?;
 
     Ok(())
 }

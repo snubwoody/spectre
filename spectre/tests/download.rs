@@ -6,7 +6,7 @@ use std::{fs, path::PathBuf};
 fn gen_random_path() -> PathBuf {
     let num: u32 = rand::random();
     let path = PathBuf::from("./.tmp");
-    path.join(&format!("test-{num}"))
+    path.join(format!("test-{num}"))
 }
 
 #[tokio::test]
