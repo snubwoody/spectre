@@ -8,6 +8,7 @@ use crate::{
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::path::Path;
 use std::process::{Child, Command, Stdio};
 
 /// An instance of a browser. The browser is started on a
@@ -53,9 +54,13 @@ impl Browser {
         // Get any available port
         let listener = std::net::TcpListener::bind("0.0.0.0:0")?;
         let port = listener.local_addr()?.port();
-        let home_path = home::home_dir().ok_or(Error::FailedToGetHomeDir)?;
-        let spectre_path = home_path.join("./spectre/browsers");
 
+        // Immediately drop the listener to free the port
+        std::mem::drop(listener);
+
+        let home_path = home::home_dir().ok_or(Error::FailedToGetHomeDir)?;
+        let spectre_path = home_path.join(".spectre").join("browsers");
+        
         let chrome_path = if cfg!(target_os="windows"){
             spectre_path.join("chrome-win64/chrome.exe")
         }else if cfg!(target_os="macos") {
@@ -63,9 +68,6 @@ impl Browser {
         }else{
             spectre_path.join("chrome-linux64/chrome")
         };
-
-        // TODO is this neccessary?
-        std::mem::drop(listener);
 
         let child = Command::new(chrome_path)
             .args([
