@@ -1,4 +1,6 @@
 name: CI
+env:
+  CARGO_TERM_COLOR: always
 on:
   push: 
     branches: ["main"]
@@ -42,10 +44,11 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{runner.os}}-cargo-${{hashFiles('**/Cargo.lock')}}
+      - uses: taiki-e/install-action@nextest
       - name: Download chrome
         run: cargo run --release --bin spectre download chrome
       - name: Run tests
-        run: cargo test
+        run: cargo nextest run
   fmt:
     name: Formatting
     runs-on: ubuntu-latest
