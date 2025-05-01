@@ -16,4 +16,5 @@ tokio-tungstenite = {workspace = true}
 rand = {workspace = true}
 log = {workspace = true}
 home = {workspace = true}
+chrono = {workspace = true}
 image = "0.25.6"

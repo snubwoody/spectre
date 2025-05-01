@@ -17,5 +17,6 @@ tokio-tungstenite = "0.26.2"
 zip = "2.6.1"
 rand = "0.9.1"
 home = "0.5.11"
+chrono = "0.4.41"
 log = "0.4.27"
 
