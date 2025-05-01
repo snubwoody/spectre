@@ -1,12 +1,9 @@
-use spectre::Browser;
 use spectre::Result;
 
-#[tokio::test]
+#[spectre::test]
 async fn get_by_class() -> Result<()> {
     let num: u32 = rand::random();
     let class = format!("my-class-{num}");
-    let browser = Browser::start().await?;
-    let mut page = browser.new_page().await?;
 
     let element = page.locate_by_class(&class).await?;
     assert!(element.is_none());

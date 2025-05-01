@@ -1,9 +1,9 @@
-use crate::Error;
-use crate::cdp::{CDPSession, WebSocketTarget};
+use crate::cdp::{CdpSession, WebSocketTarget};
 use crate::page::Page;
+use crate::{Error, get_available_port};
 use crate::{
     Result,
-    cdp::{CDPConnection, CDPMessage, CDPMethod, GetTargetResponse, Target},
+    cdp::{CdpConnection, CDPMessage, CdpMethod, GetTargetResponse, Target},
 };
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -25,7 +25,7 @@ use std::time::Duration;
 /// }
 /// ```
 ///
-/// The browser is automatically closed when dropped.
+/// Browsers are automatically cleaned up when the value is dropped.
 ///
 /// ```ignore
 /// use spectre::Browser;
@@ -38,28 +38,38 @@ use std::time::Duration;
 ///     }
 /// }
 /// ```
+#[derive(Debug)]
 pub struct Browser {
-    process: Child,
-    conn: CDPConnection,
+    /// The process the browser is running on. This is
+    /// `None` if we connected to an already running
+    /// browser (`Browser::connect`) instead of starting one.
+    process: Option<Child>,
+    conn: CdpConnection,
     /// The local network address of chrome
     url: String,
     message_id: i32,
+    kill_on_drop: bool,
     port: u16,
 }
 
 impl Browser {
-    /// start a new browser
-    pub async fn start() -> Result<Self> {
-        // Get any available port
-        let listener = std::net::TcpListener::bind("127.0.0.1:0")?;
-        let port = listener.local_addr()?.port();
+    pub async fn is_running(port: u16) -> bool {
+        let response = reqwest::get(format!("http://localhost:{}/json/version", port)).await;
+        if response.is_ok() {
+            return true;
+        }
 
-        // Immediately drop the listener to free the port
-        std::mem::drop(listener);
+        false
+    }
 
+    pub fn kill_on_drop(&mut self, value: bool) {
+        self.kill_on_drop = value;
+    }
+
+    /// Start the browser child process.
+    fn start_process(port: u16) -> crate::Result<Child> {
         let home_path = home::home_dir().ok_or(Error::FailedToGetHomeDir)?;
         let spectre_path = home_path.join(".spectre").join("browsers");
-
         let chrome_path = if cfg!(target_os = "windows") {
             spectre_path.join("chrome-win64/chrome.exe")
         } else if cfg!(target_os = "macos") {
@@ -78,12 +88,17 @@ impl Browser {
             .stdout(Stdio::null()) // Silence output
             .spawn()?;
 
+        Ok(child)
+    }
+
+    async fn connect_to_process(port: u16) -> crate::Result<(String, CdpConnection)> {
         #[derive(Debug, Serialize, Deserialize)]
         #[serde(rename_all = "camelCase")]
         struct ResponseBody {
             web_socket_debugger_url: String,
         }
 
+        // Wait for the browser to be active
         let mut interval = tokio::time::interval(Duration::from_millis(100));
         let mut elapsed = Duration::default();
         loop {
@@ -92,15 +107,9 @@ impl Browser {
                 Ok(response) => {
                     let body: ResponseBody = response.json().await?;
                     let ws_url = body.web_socket_debugger_url;
-                    let conn = CDPConnection::new(&ws_url).await?;
+                    let conn = CdpConnection::new(&ws_url).await?;
 
-                    return Ok(Self {
-                        process: child,
-                        conn,
-                        url: ws_url,
-                        message_id: 0,
-                        port,
-                    });
+                    return Ok((ws_url, conn));
                 }
                 Err(err) => {
                     if elapsed > Duration::from_secs(3) {
@@ -111,15 +120,69 @@ impl Browser {
             elapsed += interval.period();
         }
     }
+    /// Start a new browser
+    ///
+    /// # Example
+    /// ```
+    /// use spectre::Browser;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> spectre::Result<()>{
+    ///     let browser = Browser::start().await?;
+    /// }
+    /// ```
+    pub async fn start() -> Result<Self> {
+        let port = get_available_port().await?;
+        let child = Self::start_process(port)?;
+        let (url, conn) = Self::connect_to_process(port).await?;
 
-    pub fn url(&self) -> &str {
-        &self.url
+        Ok(Self {
+            process: Some(child),
+            conn,
+            kill_on_drop: true,
+            url,
+            message_id: 0,
+            port,
+        })
+    }
+
+    /// Start a new browser on a specific port
+    pub async fn start_on(port: u16) -> Result<Self> {
+        let child = Self::start_process(port)?;
+        let (url, conn) = Self::connect_to_process(port).await?;
+
+        Ok(Self {
+            process: Some(child),
+            conn,
+            url,
+            kill_on_drop: true,
+            message_id: 0,
+            port,
+        })
+    }
+
+    /// Connect to a running browser instance
+    pub async fn connect(port: u16) -> Result<Self> {
+        let (url, conn) = Self::connect_to_process(port).await?;
+
+        Ok(Self {
+            process: None,
+            conn,
+            url,
+            kill_on_drop: true,
+            message_id: 0,
+            port,
+        })
+    }
+
+    pub fn url(&self) -> String {
+        self.url.clone()
     }
 
     pub async fn get_targets(&mut self) -> Result<Vec<Target>> {
         let response: GetTargetResponse = self
             .conn
-            .send(CDPMessage::root(self.message_id, CDPMethod::GetTargets))
+            .send(CDPMessage::root(self.message_id, CdpMethod::GetTargets))
             .await?;
 
         self.message_id += 1;
@@ -141,11 +204,15 @@ impl Browser {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn get_session(&mut self) -> Result<CDPSession> {
-        let connection = CDPConnection::new(&self.url).await?;
+    pub async fn get_session(&mut self) -> Result<CdpSession> {
+        let connection = CdpConnection::new(&self.url).await?;
         let session = connection.create_session().await?;
 
         Ok(session)
+    }
+
+    pub async fn create_session(&mut self) -> Result<CdpSession> {
+        self.conn.clone().create_session().await
     }
 
     pub async fn new_page(&self) -> Result<Page> {
@@ -181,28 +248,13 @@ impl Drop for Browser {
     fn drop(&mut self) {
         // TODO close the browser gracefully first
         // https://vanilla.aslushnikov.com/?Browser.close
-
         // Don't leave zombie processes
-        self.process
-            .kill()
-            .expect("Process should have been killed");
-    }
-}
+        if !self.kill_on_drop {
+            return;
+        }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn goto_page() -> Result<()> {
-        let mut browser = Browser::start().await?;
-        let _ = browser.goto("https://youtube.com").await?;
-        let targets = browser.get_targets().await?;
-        targets
-            .iter()
-            .find(|t| t.url() == "https://www.youtube.com/")
-            .unwrap();
-
-        Ok(())
+        if let Some(child) = &mut self.process {
+            child.kill().expect("Failed to kill child");
+        }
     }
 }

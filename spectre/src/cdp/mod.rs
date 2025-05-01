@@ -4,7 +4,7 @@ mod connection;
 pub mod runtime;
 use crate::Result;
 use crate::dom::DomNode;
-pub use connection::{CDPConnection, CDPSession};
+pub use connection::{CdpConnection, CdpSession};
 use runtime::RemoteObject;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -18,11 +18,11 @@ pub struct CDPMessage {
     #[serde(skip_serializing_if = "Option::is_none")]
     session_id: Option<String>,
     #[serde(flatten)]
-    method: CDPMethod,
+    method: CdpMethod,
 }
 
 impl CDPMessage {
-    pub fn new(id: i32, session_id: &str, method: CDPMethod) -> Self {
+    pub fn new(id: i32, session_id: &str, method: CdpMethod) -> Self {
         Self {
             id,
             session_id: Some(String::from(session_id)),
@@ -30,7 +30,7 @@ impl CDPMessage {
         }
     }
 
-    pub fn root(id: i32, method: CDPMethod) -> Self {
+    pub fn root(id: i32, method: CdpMethod) -> Self {
         Self {
             id,
             session_id: None,
@@ -42,7 +42,7 @@ impl CDPMessage {
         Self {
             id,
             session_id: None,
-            method: CDPMethod::GetTargets,
+            method: CdpMethod::GetTargets,
         }
     }
 
@@ -53,7 +53,7 @@ impl CDPMessage {
         Self {
             id,
             session_id: Some(String::from(session_id)),
-            method: CDPMethod::Navigate {
+            method: CdpMethod::Navigate {
                 url: String::from(url),
             },
         }
@@ -68,7 +68,7 @@ impl CDPMessage {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(tag = "method", content = "params")]
-pub enum CDPMethod {
+pub enum CdpMethod {
     #[serde(rename = "Target.getTargets")]
     GetTargets,
     #[serde(rename = "Target.createTarget")]
@@ -117,10 +117,16 @@ pub enum CDPMethod {
     QuerySelector { node_id: i32, selector: String },
     /// Get the box model for the given node.
     ///
-    /// Corresponds to [`DOM.querySelector`](https://vanilla.aslushnikov.com/?DOM.getBoxModel)
+    /// Corresponds to [`DOM.getBoxModel`](https://vanilla.aslushnikov.com/?DOM.getBoxModel)
     #[serde(rename = "DOM.getBoxModel")]
     #[serde(rename_all = "camelCase")]
     GetBoxModel { node_id: i32 },
+    /// Close the page.
+    ///
+    /// Corresponds to [`Page.close`](https://vanilla.aslushnikov.com/?Page.close)
+    #[serde(rename = "Page.close")]
+    #[serde(rename_all = "camelCase")]
+    ClosePage,
 }
 
 /// Screenshot image formats supported by the browser
@@ -249,40 +255,4 @@ pub enum TargetType {
     ServiceWorker,
     Browser,
     WebView,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::browser::Browser;
-
-    #[tokio::test]
-    async fn send_cdp_message() -> Result<()> {
-        let browser = Browser::start().await?;
-        let ws_url = browser.url();
-
-        let conn = CDPConnection::new(ws_url).await?;
-        let message = CDPMessage::root(2, CDPMethod::GetTargets);
-        let _: GetTargetResponse = conn.send(message).await?;
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn multiple_connections() -> Result<()> {
-        let browser = Browser::start().await?;
-        let ws_url = browser.url();
-
-        let conn1 = CDPConnection::new(ws_url).await?;
-        let conn2 = CDPConnection::new(ws_url).await?;
-
-        let _: GetTargetResponse = conn1
-            .send(CDPMessage::root(2, CDPMethod::GetTargets))
-            .await?;
-        let _: GetTargetResponse = conn2
-            .send(CDPMessage::root(2, CDPMethod::GetTargets))
-            .await?;
-
-        Ok(())
-    }
 }

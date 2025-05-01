@@ -13,5 +13,5 @@ clap = {version = "4.5.37",features = ["derive"]}
 home = {workspace = true}
 
 [[bin]]
-name = "spectre"
+name = "spectre-cli"
 path = "src/main.rs"
