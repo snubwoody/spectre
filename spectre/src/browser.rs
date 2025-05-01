@@ -211,6 +211,10 @@ impl Browser {
         Ok(session)
     }
 
+    pub async fn create_session(&mut self) -> Result<CdpSession> {
+        self.conn.clone().create_session().await
+    }
+
     pub async fn new_page(&self) -> Result<Page> {
         let client = Client::new();
         let resp = client

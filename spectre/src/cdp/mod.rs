@@ -117,10 +117,16 @@ pub enum CdpMethod {
     QuerySelector { node_id: i32, selector: String },
     /// Get the box model for the given node.
     ///
-    /// Corresponds to [`DOM.querySelector`](https://vanilla.aslushnikov.com/?DOM.getBoxModel)
+    /// Corresponds to [`DOM.getBoxModel`](https://vanilla.aslushnikov.com/?DOM.getBoxModel)
     #[serde(rename = "DOM.getBoxModel")]
     #[serde(rename_all = "camelCase")]
     GetBoxModel { node_id: i32 },
+    /// Close the page.
+    ///
+    /// Corresponds to [`Page.close`](https://vanilla.aslushnikov.com/?Page.close)
+    #[serde(rename = "Page.close")]
+    #[serde(rename_all = "camelCase")]
+    ClosePage,
 }
 
 /// Screenshot image formats supported by the browser

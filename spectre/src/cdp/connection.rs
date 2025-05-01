@@ -37,6 +37,7 @@ impl CdpConnection {
     }
 
     pub async fn create_session(self) -> Result<CdpSession> {
+        // TODO maybe use a reference and clone self
         let response: GetTargetResponse = self.send(CDPMessage::get_targets(1)).await?;
         let targets = response.body().targets;
 
@@ -168,6 +169,11 @@ impl CdpSession {
     /// ```
     pub async fn resolve_node(&self, node_id: i32) -> Result<CDPResponse<ResolveNodeBody>> {
         self.send(CdpMethod::ResolveNode { node_id }).await
+    }
+
+    pub async fn close_page(&self) -> Result<()> {
+        let _:Value = self.send(CdpMethod::ClosePage).await?;
+        Ok(())
     }
 
     /// Run `document.querySelector` on the given node and

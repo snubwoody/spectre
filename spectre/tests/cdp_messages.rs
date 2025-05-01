@@ -114,6 +114,7 @@ async fn page_navigate_error() -> Result<()> {
     Ok(())
 }
 
+
 #[spectre::test]
 async fn runtime_evaluate() -> Result<()> {
     let conn = CdpConnection::new(&browser.url()).await?;

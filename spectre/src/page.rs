@@ -102,6 +102,11 @@ impl Page {
         self.session.evaluate(expr).await
     }
 
+    /// Close the page
+    pub async fn close(&self) -> Result<()> {
+        self.session.close_page().await
+    }
+
     pub async fn navigate(&mut self, url: &str) -> Result<()> {
         let method = CdpMethod::Navigate {
             url: String::from(url),
