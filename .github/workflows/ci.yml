@@ -1,6 +1,7 @@
 name: CI
 env:
   CARGO_TERM_COLOR: always
+  SPECTRE_TEST_PORT: 6264
 on:
   push: 
     branches: ["main"]
