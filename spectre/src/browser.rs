@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::{get_available_port, Error};
 use crate::cdp::{CDPSession, WebSocketTarget};
 use crate::page::Page;
 use crate::{
@@ -10,17 +10,6 @@ use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
-/// Get any available port on the device
-async fn get_port() -> Result<u16>{
-    // Get any available port
-    let listener = std::net::TcpListener::bind("127.0.0.1:0")?;
-    let port = listener.local_addr()?.port();
-    
-    // Immediately drop the listener to free the port
-    std::mem::drop(listener);
-
-    Ok(port)
-}
 
 /// An instance of a browser. The browser is started on a
 /// local port and listens to json messages via websockets.
@@ -143,7 +132,7 @@ impl Browser {
     /// }
     /// ```
     pub async fn start() -> Result<Self> {
-        let port = get_port().await?;
+        let port = get_available_port().await?;
         let child = Self::start_process(port)?;
         let (url,conn) = Self::connect_to_process(port).await?;
 
@@ -267,55 +256,3 @@ impl Drop for Browser {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use std::mem;
-    use tokio_tungstenite::connect_async;
-    use super::*;
-
-    #[tokio::test]
-    async fn goto_page() -> Result<()> {
-        let mut browser = Browser::start().await?;
-        let _ = browser.goto("https://youtube.com").await?;
-        let targets = browser.get_targets().await?;
-        targets
-            .iter()
-            .find(|t| t.url() == "https://www.youtube.com/")
-            .unwrap();
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn connect_to_running_browser() -> Result<()> {
-        let port = get_port().await?;
-        let _browser = Browser::start_on(port).await?;
-        Browser::connect(port).await?;
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn check_if_browser_is_running() -> Result<()> {
-        let port = get_port().await?;
-        assert!(!Browser::is_running(port).await);
-        let _browser = Browser::start_on(port).await?;
-
-        assert!(Browser::is_running(port).await);
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn browser_closed_when_dropped() -> Result<()> {
-        let browser = Browser::start().await?;
-        let url = browser.url();
-
-        let _ = connect_async(&url).await?;
-        mem::drop(browser);
-
-        let result = connect_async(url).await;
-        assert!(result.is_err());
-        Ok(())
-    }
-}

@@ -10,9 +10,8 @@ use spectre::{
     dom::NodeName,
 };
 
-#[tokio::test]
+#[spectre::test]
 async fn get_targets() -> Result<()> {
-    let browser = Browser::start().await?;
     let conn = CDPConnection::new(&browser.url()).await?;
     let message = CDPMessage::root(1, CDPMethod::GetTargets);
     let response: GetTargetResponse = conn.send(message).await?;
@@ -21,9 +20,9 @@ async fn get_targets() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+
+#[spectre::test]
 async fn create_target() -> Result<()> {
-    let browser = Browser::start().await?;
     let conn = CDPConnection::new(&browser.url()).await?;
     let message = CDPMessage::root(
         1,
@@ -36,9 +35,8 @@ async fn create_target() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn attach_to_target() -> Result<()> {
-    let browser = Browser::start().await?;
     let conn = CDPConnection::new(&browser.url()).await?;
     let message = CDPMessage::get_targets(1);
 
@@ -55,7 +53,7 @@ async fn attach_to_target() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn page_navigate() -> Result<()> {
     let browser = Browser::start().await?;
     let conn = CDPConnection::new(&browser.url()).await?;
@@ -78,7 +76,7 @@ async fn page_navigate() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn get_document() -> Result<()> {
     let mut browser = Browser::start().await?;
     let page = browser.goto("https://example.com").await?;
@@ -96,7 +94,7 @@ async fn get_document() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn page_navigate_error() -> Result<()> {
     let browser = Browser::start().await?;
     let conn = CDPConnection::new(&browser.url()).await?;
@@ -120,7 +118,7 @@ async fn page_navigate_error() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn runtime_evaluate() -> Result<()> {
     let browser = Browser::start().await?;
     let conn = CDPConnection::new(&browser.url()).await?;
@@ -152,6 +150,34 @@ async fn runtime_evaluate() -> Result<()> {
     let message = CDPMessage::new(1, &session_id, method);
     let response: Value = conn.send(message).await?;
     dbg!(&response);
+
+    Ok(())
+}
+
+#[spectre::test]
+async fn send_cdp_message() -> Result<()> {
+    let ws_url = browser.url();
+
+    let conn = CDPConnection::new(&ws_url).await?;
+    let message = CDPMessage::root(2, CDPMethod::GetTargets);
+    let _: GetTargetResponse = conn.send(message).await?;
+
+    Ok(())
+}
+
+#[spectre::test]
+async fn multiple_connections() -> Result<()> {
+    let ws_url = browser.url();
+
+    let conn1 = CDPConnection::new(&ws_url).await?;
+    let conn2 = CDPConnection::new(&ws_url).await?;
+
+    let _: GetTargetResponse = conn1
+        .send(CDPMessage::root(2, CDPMethod::GetTargets))
+        .await?;
+    let _: GetTargetResponse = conn2
+        .send(CDPMessage::root(2, CDPMethod::GetTargets))
+        .await?;
 
     Ok(())
 }

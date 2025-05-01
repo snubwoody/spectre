@@ -250,39 +250,3 @@ pub enum TargetType {
     Browser,
     WebView,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::browser::Browser;
-
-    #[tokio::test]
-    async fn send_cdp_message() -> Result<()> {
-        let browser = Browser::start().await?;
-        let ws_url = browser.url();
-
-        let conn = CDPConnection::new(&ws_url).await?;
-        let message = CDPMessage::root(2, CDPMethod::GetTargets);
-        let _: GetTargetResponse = conn.send(message).await?;
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn multiple_connections() -> Result<()> {
-        let browser = Browser::start().await?;
-        let ws_url = browser.url();
-
-        let conn1 = CDPConnection::new(&ws_url).await?;
-        let conn2 = CDPConnection::new(&ws_url).await?;
-
-        let _: GetTargetResponse = conn1
-            .send(CDPMessage::root(2, CDPMethod::GetTargets))
-            .await?;
-        let _: GetTargetResponse = conn2
-            .send(CDPMessage::root(2, CDPMethod::GetTargets))
-            .await?;
-
-        Ok(())
-    }
-}

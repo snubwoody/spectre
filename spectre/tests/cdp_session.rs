@@ -4,9 +4,8 @@ use spectre::{
     cdp::{CDPConnection, CDPMethod, GetTargetResponse},
 };
 
-#[tokio::test]
+#[spectre::test]
 async fn create_session() -> Result<()> {
-    let browser = Browser::start().await?;
     let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
@@ -14,9 +13,8 @@ async fn create_session() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn get_box_model() -> Result<()> {
-    let browser = Browser::start().await?;
     let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
@@ -26,9 +24,8 @@ async fn get_box_model() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn navigate() -> Result<()> {
-    let browser = Browser::start().await?;
     let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
@@ -36,9 +33,8 @@ async fn navigate() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn evaluate() -> Result<()> {
-    let browser = Browser::start().await?;
     let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
@@ -46,9 +42,8 @@ async fn evaluate() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn can_handle_exception() -> Result<()> {
-    let browser = Browser::start().await?;
     let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
@@ -69,9 +64,8 @@ async fn can_handle_exception() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn can_handle_syntax_error() -> Result<()> {
-    let browser = Browser::start().await?;
     let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
@@ -80,9 +74,8 @@ async fn can_handle_syntax_error() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[spectre::test]
 async fn query_selector_handle_missing_element() -> Result<()> {
-    let browser = Browser::start().await?;
     let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
