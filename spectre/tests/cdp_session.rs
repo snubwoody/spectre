@@ -1,6 +1,6 @@
 use serde_json::json;
 use spectre::{
-    Browser, EMPTY_PAGE, Error, Result,
+    EMPTY_PAGE, Error, Result,
     cdp::{CDPConnection, CDPMethod, GetTargetResponse},
 };
 

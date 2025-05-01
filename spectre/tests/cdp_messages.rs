@@ -2,7 +2,7 @@
 //! responses are parsed correctly
 use serde_json::Value;
 use spectre::{
-    Browser, Result,
+    Result,
     cdp::{
         AttachToTargetResponse, CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse,
         GetDocumentResponse, GetTargetResponse, PageNavigateResponse,
