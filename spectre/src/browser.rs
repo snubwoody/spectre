@@ -10,6 +10,18 @@ use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
+/// Get any available port on the device
+async fn get_port() -> Result<u16>{
+    // Get any available port
+    let listener = std::net::TcpListener::bind("127.0.0.1:0")?;
+    let port = listener.local_addr()?.port();
+    
+    // Immediately drop the listener to free the port
+    std::mem::drop(listener);
+
+    Ok(port)
+}
+
 /// An instance of a browser. The browser is started on a
 /// local port and listens to json messages via websockets.
 ///
@@ -25,7 +37,7 @@ use std::time::Duration;
 /// }
 /// ```
 ///
-/// The browser is automatically closed when dropped.
+/// Browsers are automatically cleaned up when the value is dropped.
 ///
 /// ```ignore
 /// use spectre::Browser;
@@ -39,7 +51,7 @@ use std::time::Duration;
 /// }
 /// ```
 pub struct Browser {
-    process: Child,
+    process: Option<Child>,
     conn: CDPConnection,
     /// The local network address of chrome
     url: String,
@@ -48,18 +60,10 @@ pub struct Browser {
 }
 
 impl Browser {
-    /// start a new browser
-    pub async fn start() -> Result<Self> {
-        // Get any available port
-        let listener = std::net::TcpListener::bind("127.0.0.1:0")?;
-        let port = listener.local_addr()?.port();
-
-        // Immediately drop the listener to free the port
-        std::mem::drop(listener);
-
+    /// Start the browser child process.
+    fn start_process(port: u16) -> crate::Result<Child>{
         let home_path = home::home_dir().ok_or(Error::FailedToGetHomeDir)?;
         let spectre_path = home_path.join(".spectre").join("browsers");
-
         let chrome_path = if cfg!(target_os = "windows") {
             spectre_path.join("chrome-win64/chrome.exe")
         } else if cfg!(target_os = "macos") {
@@ -77,7 +81,11 @@ impl Browser {
             ])
             .stdout(Stdio::null()) // Silence output
             .spawn()?;
+        
+        Ok(child)
+    }
 
+    async fn connect_to_process(port: u16) -> crate::Result<(String,CDPConnection)>{
         #[derive(Debug, Serialize, Deserialize)]
         #[serde(rename_all = "camelCase")]
         struct ResponseBody {
@@ -94,13 +102,7 @@ impl Browser {
                     let ws_url = body.web_socket_debugger_url;
                     let conn = CDPConnection::new(&ws_url).await?;
 
-                    return Ok(Self {
-                        process: child,
-                        conn,
-                        url: ws_url,
-                        message_id: 0,
-                        port,
-                    });
+                    return Ok((ws_url,conn));
                 }
                 Err(err) => {
                     if elapsed > Duration::from_secs(3) {
@@ -111,9 +113,63 @@ impl Browser {
             elapsed += interval.period();
         }
     }
+    /// Start a new browser
+    /// 
+    /// # Example
+    /// ```
+    /// use spectre::Browser;
+    /// 
+    /// #[tokio::main]
+    /// async fn main() -> spectre::Result<()>{
+    ///     let browser = Browser::start().await?;
+    /// }
+    /// ```
+    pub async fn start() -> Result<Self> {
+        let port = get_port().await?;
+        let child = Self::start_process(port)?;
+        let (url,conn) = Self::connect_to_process(port).await?;
 
-    pub fn url(&self) -> &str {
-        &self.url
+        Ok(Self {
+            process: Some(child),
+            conn,
+            url,
+            message_id: 0,
+            port,
+        })
+    }
+
+    /// Connect to a running browser instance
+    pub async fn connect(port: u16) -> Result<Self> {
+        #[derive(Debug, Serialize, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        struct ResponseBody {
+            web_socket_debugger_url: String,
+        }
+
+        match reqwest::get(format!("http://localhost:{}/json/version", port)).await {
+            Ok(response) => {
+                let body: ResponseBody = response.json().await?;
+                let ws_url = body.web_socket_debugger_url;
+                let conn = CDPConnection::new(&ws_url).await?;
+
+                return Ok(Self {
+                    process: None,
+                    conn,
+                    url: ws_url,
+                    message_id: 0,
+                    port,
+                });
+            }
+            Err(err) => {
+                // TODO return custom error here
+
+                return Err(err.into());
+            }
+        }
+    }
+
+    pub fn url(&self) -> String {
+        self.url.clone()
     }
 
     pub async fn get_targets(&mut self) -> Result<Vec<Target>> {
@@ -181,16 +237,19 @@ impl Drop for Browser {
     fn drop(&mut self) {
         // TODO close the browser gracefully first
         // https://vanilla.aslushnikov.com/?Browser.close
-
         // Don't leave zombie processes
-        self.process
-            .kill()
-            .expect("Process should have been killed");
+
+        if let Some(child) = &mut self.process{
+            child.kill()
+                .expect("Failed to kill child");
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::mem;
+    use tokio_tungstenite::connect_async;
     use super::*;
 
     #[tokio::test]
@@ -203,6 +262,32 @@ mod tests {
             .find(|t| t.url() == "https://www.youtube.com/")
             .unwrap();
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn connect_to_running_browser() -> Result<()> {
+        let mut browser = Browser::start().await?;
+        let _ = browser.goto("https://youtube.com").await?;
+        let targets = browser.get_targets().await?;
+        targets
+            .iter()
+            .find(|t| t.url() == "https://www.youtube.com/")
+            .unwrap();
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn browser_closed_when_dropped() -> Result<()> {
+        let browser = Browser::start().await?;
+        let url = browser.url();
+
+        let _ = connect_async(&url).await?;
+        mem::drop(browser);
+
+        let result = connect_async(url).await;
+        assert!(result.is_err());
         Ok(())
     }
 }

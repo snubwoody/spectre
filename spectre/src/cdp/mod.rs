@@ -261,7 +261,7 @@ mod tests {
         let browser = Browser::start().await?;
         let ws_url = browser.url();
 
-        let conn = CDPConnection::new(ws_url).await?;
+        let conn = CDPConnection::new(&ws_url).await?;
         let message = CDPMessage::root(2, CDPMethod::GetTargets);
         let _: GetTargetResponse = conn.send(message).await?;
 
@@ -273,8 +273,8 @@ mod tests {
         let browser = Browser::start().await?;
         let ws_url = browser.url();
 
-        let conn1 = CDPConnection::new(ws_url).await?;
-        let conn2 = CDPConnection::new(ws_url).await?;
+        let conn1 = CDPConnection::new(&ws_url).await?;
+        let conn2 = CDPConnection::new(&ws_url).await?;
 
         let _: GetTargetResponse = conn1
             .send(CDPMessage::root(2, CDPMethod::GetTargets))

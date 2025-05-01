@@ -7,7 +7,7 @@ use spectre::{
 #[tokio::test]
 async fn create_session() -> Result<()> {
     let browser = Browser::start().await?;
-    let connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let _: GetTargetResponse = session.send(CDPMethod::GetTargets).await?;
@@ -17,7 +17,7 @@ async fn create_session() -> Result<()> {
 #[tokio::test]
 async fn get_box_model() -> Result<()> {
     let browser = Browser::start().await?;
-    let connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let root = session.get_dom(-1).await?;
@@ -29,7 +29,7 @@ async fn get_box_model() -> Result<()> {
 #[tokio::test]
 async fn navigate() -> Result<()> {
     let browser = Browser::start().await?;
-    let connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     session.navigate(EMPTY_PAGE).await?;
@@ -39,7 +39,7 @@ async fn navigate() -> Result<()> {
 #[tokio::test]
 async fn evaluate() -> Result<()> {
     let browser = Browser::start().await?;
-    let connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let _ = session.evaluate("5").await?;
@@ -49,7 +49,7 @@ async fn evaluate() -> Result<()> {
 #[tokio::test]
 async fn can_handle_exception() -> Result<()> {
     let browser = Browser::start().await?;
-    let connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let result = session.evaluate("throw 5").await;
@@ -72,7 +72,7 @@ async fn can_handle_exception() -> Result<()> {
 #[tokio::test]
 async fn can_handle_syntax_error() -> Result<()> {
     let browser = Browser::start().await?;
-    let connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let result = session.evaluate("return 5").await;
@@ -83,7 +83,7 @@ async fn can_handle_syntax_error() -> Result<()> {
 #[tokio::test]
 async fn query_selector_handle_missing_element() -> Result<()> {
     let browser = Browser::start().await?;
-    let connection = CDPConnection::new(browser.url()).await?;
+    let connection = CDPConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let root = session.get_dom(-1).await?;
