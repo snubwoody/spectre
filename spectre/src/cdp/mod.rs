@@ -4,7 +4,7 @@ mod connection;
 pub mod runtime;
 use crate::Result;
 use crate::dom::DomNode;
-pub use connection::{CDPConnection, CDPSession};
+pub use connection::{CdpConnection, CdpSession};
 use runtime::RemoteObject;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -18,11 +18,11 @@ pub struct CDPMessage {
     #[serde(skip_serializing_if = "Option::is_none")]
     session_id: Option<String>,
     #[serde(flatten)]
-    method: CDPMethod,
+    method: CdpMethod,
 }
 
 impl CDPMessage {
-    pub fn new(id: i32, session_id: &str, method: CDPMethod) -> Self {
+    pub fn new(id: i32, session_id: &str, method: CdpMethod) -> Self {
         Self {
             id,
             session_id: Some(String::from(session_id)),
@@ -30,7 +30,7 @@ impl CDPMessage {
         }
     }
 
-    pub fn root(id: i32, method: CDPMethod) -> Self {
+    pub fn root(id: i32, method: CdpMethod) -> Self {
         Self {
             id,
             session_id: None,
@@ -42,7 +42,7 @@ impl CDPMessage {
         Self {
             id,
             session_id: None,
-            method: CDPMethod::GetTargets,
+            method: CdpMethod::GetTargets,
         }
     }
 
@@ -53,7 +53,7 @@ impl CDPMessage {
         Self {
             id,
             session_id: Some(String::from(session_id)),
-            method: CDPMethod::Navigate {
+            method: CdpMethod::Navigate {
                 url: String::from(url),
             },
         }
@@ -68,7 +68,7 @@ impl CDPMessage {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(tag = "method", content = "params")]
-pub enum CDPMethod {
+pub enum CdpMethod {
     #[serde(rename = "Target.getTargets")]
     GetTargets,
     #[serde(rename = "Target.createTarget")]

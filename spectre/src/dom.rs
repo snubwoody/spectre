@@ -1,4 +1,4 @@
-use crate::{Result, cdp::CDPSession};
+use crate::{Result, cdp::CdpSession};
 use serde::{Deserialize, Serialize};
 
 /// An element in the DOM, all elements are matched not just
@@ -6,11 +6,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug)]
 pub struct Element {
     node_id: i32,
-    session: CDPSession,
+    session: CdpSession,
 }
 
 impl Element {
-    pub fn new(node_id: i32, session: CDPSession) -> Self {
+    pub fn new(node_id: i32, session: CdpSession) -> Self {
         Self { node_id, session }
     }
 

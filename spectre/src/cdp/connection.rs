@@ -1,6 +1,6 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CDPMessage, CDPMethod, CDPResponse, GetDocumentBody, GetTargetResponse,
+    AttachToTargetResponse, CDPMessage, CdpMethod, CDPResponse, GetDocumentBody, GetTargetResponse,
     PageNavigateResponse, QuerySelectorBody, ResolveNodeBody,
 };
 use crate::dom::{DomNode, Element};
@@ -17,30 +17,30 @@ use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
 /// A raw connection to the Chrome Devtool protocol.
 #[derive(Clone)]
-pub struct CDPConnection {
+pub struct CdpConnection {
     stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
 }
 
-impl Debug for CDPConnection {
+impl Debug for CdpConnection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("CDPConnection")
+        f.debug_struct("CdpConnection")
             .field("stream", &"Arc<Mutex<WebSocketStream<...>>>")
             .finish()
     }
 }
 
-impl CDPConnection {
+impl CdpConnection {
     pub async fn new(url: &str) -> Result<Self> {
         let (stream, _) = connect_async(url).await?;
         let stream = Arc::new(Mutex::new(stream));
         Ok(Self { stream })
     }
 
-    pub async fn create_session(self) -> Result<CDPSession> {
+    pub async fn create_session(self) -> Result<CdpSession> {
         let response: GetTargetResponse = self.send(CDPMessage::get_targets(1)).await?;
         let targets = response.body().targets;
 
-        let method = CDPMethod::AttachToTarget {
+        let method = CdpMethod::AttachToTarget {
             target_id: targets[0].target_id.clone(),
             flatten: true,
         };
@@ -48,7 +48,7 @@ impl CDPConnection {
         let response: AttachToTargetResponse = self.send(message).await?;
         let session_id = response.body().session_id;
 
-        let session = CDPSession::new(self, &session_id);
+        let session = CdpSession::new(self, &session_id);
         Ok(session)
     }
 
@@ -85,13 +85,13 @@ impl CDPConnection {
 }
 
 #[derive(Debug, Clone)]
-pub struct CDPSession {
-    conn: CDPConnection,
+pub struct CdpSession {
+    conn: CdpConnection,
     session_id: String,
 }
 
-impl CDPSession {
-    fn new(conn: CDPConnection, session_id: &str) -> Self {
+impl CdpSession {
+    fn new(conn: CdpConnection, session_id: &str) -> Self {
         Self {
             conn,
             session_id: session_id.to_string(),
@@ -100,7 +100,7 @@ impl CDPSession {
 
     /// Navitate the page to a url
     pub async fn navigate(&self, url: &str) -> Result<PageNavigateResponse> {
-        self.send(CDPMethod::Navigate {
+        self.send(CdpMethod::Navigate {
             url: url.to_string(),
         })
         .await
@@ -119,13 +119,13 @@ impl CDPSession {
     ///     Page,
     ///     Result,
     ///     dom::NodeName,
-    ///     cdp::CDPConnection
+    ///     cdp::CdpConnection
     /// };
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<()>{
     ///     let browser = Browser::start().await?;
-    ///     let connection = CDPConnection::new(browser.url()).await?;
+    ///     let connection = CdpConnection::new(browser.url()).await?;
     ///     let mut session = connection.create_session().await?;
     ///     
     ///     // Get child nodes up to 5 elements deep;
@@ -137,7 +137,7 @@ impl CDPSession {
     /// ```
     pub async fn get_dom(&self, depth: i32) -> Result<DomNode> {
         let response: CDPResponse<GetDocumentBody> =
-            self.send(CDPMethod::GetDocument { depth }).await?;
+            self.send(CdpMethod::GetDocument { depth }).await?;
         let root = response.result.root;
         Ok(root)
     }
@@ -167,7 +167,7 @@ impl CDPSession {
     /// }
     /// ```
     pub async fn resolve_node(&self, node_id: i32) -> Result<CDPResponse<ResolveNodeBody>> {
-        self.send(CDPMethod::ResolveNode { node_id }).await
+        self.send(CdpMethod::ResolveNode { node_id }).await
     }
 
     /// Run `document.querySelector` on the given node and
@@ -193,7 +193,7 @@ impl CDPSession {
     /// }
     /// ```
     pub async fn query_selector(&self, node_id: i32, selector: &str) -> Result<Option<Element>> {
-        let method = CDPMethod::QuerySelector {
+        let method = CdpMethod::QuerySelector {
             node_id,
             selector: selector.to_owned(),
         };
@@ -211,7 +211,7 @@ impl CDPSession {
     }
 
     pub async fn get_box_model(&self, node_id: i32) -> Result<()> {
-        let method = CDPMethod::GetBoxModel { node_id };
+        let method = CdpMethod::GetBoxModel { node_id };
 
         let response: CDPResponse<Value> = self.send(method).await?;
 
@@ -222,7 +222,7 @@ impl CDPSession {
     /// Evaluate javascript string in the browser
     pub async fn evaluate(&self, expr: &str) -> Result<EvaluateResponse> {
         let response: EvaluateResponse = self
-            .send(CDPMethod::Evaluate {
+            .send(CdpMethod::Evaluate {
                 expression: expr.to_string(),
                 await_promise: true,
             })
@@ -254,7 +254,7 @@ impl CDPSession {
         }
     }
 
-    pub async fn send<T>(&self, method: CDPMethod) -> Result<T>
+    pub async fn send<T>(&self, method: CdpMethod) -> Result<T>
     where
         T: DeserializeOwned,
     {

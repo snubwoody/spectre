@@ -4,7 +4,7 @@ use serde_json::Value;
 use spectre::{
     Result,
     cdp::{
-        AttachToTargetResponse, CDPConnection, CDPMessage, CDPMethod, CreateTargetResponse,
+        AttachToTargetResponse, CdpConnection, CDPMessage, CdpMethod, CreateTargetResponse,
         GetDocumentResponse, GetTargetResponse, PageNavigateResponse,
     },
     dom::NodeName,
@@ -12,8 +12,8 @@ use spectre::{
 
 #[spectre::test]
 async fn get_targets() -> Result<()> {
-    let conn = CDPConnection::new(&browser.url()).await?;
-    let message = CDPMessage::root(1, CDPMethod::GetTargets);
+    let conn = CdpConnection::new(&browser.url()).await?;
+    let message = CDPMessage::root(1, CdpMethod::GetTargets);
     let response: GetTargetResponse = conn.send(message).await?;
     assert_eq!(response.id(), 1);
 
@@ -22,10 +22,10 @@ async fn get_targets() -> Result<()> {
 
 #[spectre::test]
 async fn create_target() -> Result<()> {
-    let conn = CDPConnection::new(&browser.url()).await?;
+    let conn = CdpConnection::new(&browser.url()).await?;
     let message = CDPMessage::root(
         1,
-        CDPMethod::CreateTarget {
+        CdpMethod::CreateTarget {
             url: String::from("https://example.com"),
         },
     );
@@ -36,13 +36,13 @@ async fn create_target() -> Result<()> {
 
 #[spectre::test]
 async fn attach_to_target() -> Result<()> {
-    let conn = CDPConnection::new(&browser.url()).await?;
+    let conn = CdpConnection::new(&browser.url()).await?;
     let message = CDPMessage::get_targets(1);
 
     let response: GetTargetResponse = conn.send(message).await?;
     let targets = response.body().targets;
 
-    let method = CDPMethod::AttachToTarget {
+    let method = CdpMethod::AttachToTarget {
         target_id: targets[0].target_id.clone(),
         flatten: true,
     };
@@ -54,13 +54,13 @@ async fn attach_to_target() -> Result<()> {
 
 #[spectre::test]
 async fn page_navigate() -> Result<()> {
-    let conn = CDPConnection::new(&browser.url()).await?;
+    let conn = CdpConnection::new(&browser.url()).await?;
     let message = CDPMessage::get_targets(1);
 
     let response: GetTargetResponse = conn.send(message).await?;
     let targets = response.body().targets;
 
-    let method = CDPMethod::AttachToTarget {
+    let method = CdpMethod::AttachToTarget {
         target_id: targets[0].target_id.clone(),
         flatten: true,
     };
@@ -79,10 +79,10 @@ async fn get_document() -> Result<()> {
     let page = browser.goto("https://example.com").await?;
 
     let url = page.endpoint();
-    let conn = CDPConnection::new(url).await?;
+    let conn = CdpConnection::new(url).await?;
 
     // Set to -1 to get the whole tree
-    let method = CDPMethod::GetDocument { depth: -1 };
+    let method = CdpMethod::GetDocument { depth: -1 };
     let message = CDPMessage::root(2, method);
     let response: GetDocumentResponse = conn.send(message).await?;
 
@@ -93,13 +93,13 @@ async fn get_document() -> Result<()> {
 
 #[spectre::test]
 async fn page_navigate_error() -> Result<()> {
-    let conn = CDPConnection::new(&browser.url()).await?;
+    let conn = CdpConnection::new(&browser.url()).await?;
     let message = CDPMessage::get_targets(1);
 
     let response: GetTargetResponse = conn.send(message).await?;
     let targets = response.body().targets;
 
-    let method = CDPMethod::AttachToTarget {
+    let method = CdpMethod::AttachToTarget {
         target_id: targets[0].target_id.clone(),
         flatten: true,
     };
@@ -116,12 +116,12 @@ async fn page_navigate_error() -> Result<()> {
 
 #[spectre::test]
 async fn runtime_evaluate() -> Result<()> {
-    let conn = CDPConnection::new(&browser.url()).await?;
+    let conn = CdpConnection::new(&browser.url()).await?;
 
     let response: GetTargetResponse = conn.send(CDPMessage::get_targets(1)).await?;
     let targets = response.body().targets;
 
-    let method = CDPMethod::AttachToTarget {
+    let method = CdpMethod::AttachToTarget {
         target_id: targets[0].target_id.clone(),
         flatten: true,
     };
@@ -129,7 +129,7 @@ async fn runtime_evaluate() -> Result<()> {
     let response: AttachToTargetResponse = conn.send(message).await?;
     let session_id = response.body().session_id;
 
-    let method = CDPMethod::Evaluate {
+    let method = CdpMethod::Evaluate {
         expression: String::from(
             "
 			function hi(){
@@ -153,8 +153,8 @@ async fn runtime_evaluate() -> Result<()> {
 async fn send_cdp_message() -> Result<()> {
     let ws_url = browser.url();
 
-    let conn = CDPConnection::new(&ws_url).await?;
-    let message = CDPMessage::root(2, CDPMethod::GetTargets);
+    let conn = CdpConnection::new(&ws_url).await?;
+    let message = CDPMessage::root(2, CdpMethod::GetTargets);
     let _: GetTargetResponse = conn.send(message).await?;
 
     Ok(())
@@ -164,14 +164,14 @@ async fn send_cdp_message() -> Result<()> {
 async fn multiple_connections() -> Result<()> {
     let ws_url = browser.url();
 
-    let conn1 = CDPConnection::new(&ws_url).await?;
-    let conn2 = CDPConnection::new(&ws_url).await?;
+    let conn1 = CdpConnection::new(&ws_url).await?;
+    let conn2 = CdpConnection::new(&ws_url).await?;
 
     let _: GetTargetResponse = conn1
-        .send(CDPMessage::root(2, CDPMethod::GetTargets))
+        .send(CDPMessage::root(2, CdpMethod::GetTargets))
         .await?;
     let _: GetTargetResponse = conn2
-        .send(CDPMessage::root(2, CDPMethod::GetTargets))
+        .send(CDPMessage::root(2, CdpMethod::GetTargets))
         .await?;
 
     Ok(())

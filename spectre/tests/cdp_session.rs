@@ -1,21 +1,21 @@
 use serde_json::json;
 use spectre::{
     EMPTY_PAGE, Error, Result,
-    cdp::{CDPConnection, CDPMethod, GetTargetResponse},
+    cdp::{CdpConnection, CdpMethod, GetTargetResponse},
 };
 
 #[spectre::test]
 async fn create_session() -> Result<()> {
-    let connection = CDPConnection::new(&browser.url()).await?;
+    let connection = CdpConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
-    let _: GetTargetResponse = session.send(CDPMethod::GetTargets).await?;
+    let _: GetTargetResponse = session.send(CdpMethod::GetTargets).await?;
     Ok(())
 }
 
 #[spectre::test]
 async fn get_box_model() -> Result<()> {
-    let connection = CDPConnection::new(&browser.url()).await?;
+    let connection = CdpConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let root = session.get_dom(-1).await?;
@@ -26,7 +26,7 @@ async fn get_box_model() -> Result<()> {
 
 #[spectre::test]
 async fn navigate() -> Result<()> {
-    let connection = CDPConnection::new(&browser.url()).await?;
+    let connection = CdpConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     session.navigate(EMPTY_PAGE).await?;
@@ -35,7 +35,7 @@ async fn navigate() -> Result<()> {
 
 #[spectre::test]
 async fn evaluate() -> Result<()> {
-    let connection = CDPConnection::new(&browser.url()).await?;
+    let connection = CdpConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let _ = session.evaluate("5").await?;
@@ -44,7 +44,7 @@ async fn evaluate() -> Result<()> {
 
 #[spectre::test]
 async fn can_handle_exception() -> Result<()> {
-    let connection = CDPConnection::new(&browser.url()).await?;
+    let connection = CdpConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let result = session.evaluate("throw 5").await;
@@ -66,7 +66,7 @@ async fn can_handle_exception() -> Result<()> {
 
 #[spectre::test]
 async fn can_handle_syntax_error() -> Result<()> {
-    let connection = CDPConnection::new(&browser.url()).await?;
+    let connection = CdpConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let result = session.evaluate("return 5").await;
@@ -76,7 +76,7 @@ async fn can_handle_syntax_error() -> Result<()> {
 
 #[spectre::test]
 async fn query_selector_handle_missing_element() -> Result<()> {
-    let connection = CDPConnection::new(&browser.url()).await?;
+    let connection = CdpConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
 
     let root = session.get_dom(-1).await?;

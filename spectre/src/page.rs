@@ -1,7 +1,7 @@
 use crate::{
     Error, Result,
     cdp::{
-        CDPConnection, CDPMethod, CDPSession, GetDocumentResponse, PageNavigateResponse,
+        CdpConnection, CdpMethod, CdpSession, GetDocumentResponse, PageNavigateResponse,
         runtime::EvaluateResponse,
     },
     dom::{DomNode, Element},
@@ -9,13 +9,13 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Page {
-    session: CDPSession,
+    session: CdpSession,
     endpoint: String,
 }
 
 impl Page {
     pub async fn new(url: &str) -> Result<Self> {
-        let conn = CDPConnection::new(url).await?;
+        let conn = CdpConnection::new(url).await?;
         let session = conn.create_session().await?;
 
         Ok(Page {
@@ -91,7 +91,7 @@ impl Page {
     /// Get the whole DOM
     pub async fn get_dom(&self) -> Result<DomNode> {
         // Set to -1 to get all sub nodes.
-        let method = CDPMethod::GetDocument { depth: -1 };
+        let method = CdpMethod::GetDocument { depth: -1 };
         let response: GetDocumentResponse = self.session.send(method).await?;
         let root = response.body().root;
 
@@ -103,7 +103,7 @@ impl Page {
     }
 
     pub async fn navigate(&mut self, url: &str) -> Result<()> {
-        let method = CDPMethod::Navigate {
+        let method = CdpMethod::Navigate {
             url: String::from(url),
         };
         let _: PageNavigateResponse = self.session.send(method).await?;

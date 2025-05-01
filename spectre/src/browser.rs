@@ -1,9 +1,9 @@
-use crate::cdp::{CDPSession, WebSocketTarget};
+use crate::cdp::{CdpSession, WebSocketTarget};
 use crate::page::Page;
 use crate::{Error, get_available_port};
 use crate::{
     Result,
-    cdp::{CDPConnection, CDPMessage, CDPMethod, GetTargetResponse, Target},
+    cdp::{CdpConnection, CDPMessage, CdpMethod, GetTargetResponse, Target},
 };
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -44,7 +44,7 @@ pub struct Browser {
     /// `None` if we connected to an already running
     /// browser (`Browser::connect`) instead of starting one.
     process: Option<Child>,
-    conn: CDPConnection,
+    conn: CdpConnection,
     /// The local network address of chrome
     url: String,
     message_id: i32,
@@ -91,7 +91,7 @@ impl Browser {
         Ok(child)
     }
 
-    async fn connect_to_process(port: u16) -> crate::Result<(String, CDPConnection)> {
+    async fn connect_to_process(port: u16) -> crate::Result<(String, CdpConnection)> {
         #[derive(Debug, Serialize, Deserialize)]
         #[serde(rename_all = "camelCase")]
         struct ResponseBody {
@@ -107,7 +107,7 @@ impl Browser {
                 Ok(response) => {
                     let body: ResponseBody = response.json().await?;
                     let ws_url = body.web_socket_debugger_url;
-                    let conn = CDPConnection::new(&ws_url).await?;
+                    let conn = CdpConnection::new(&ws_url).await?;
 
                     return Ok((ws_url, conn));
                 }
@@ -182,7 +182,7 @@ impl Browser {
     pub async fn get_targets(&mut self) -> Result<Vec<Target>> {
         let response: GetTargetResponse = self
             .conn
-            .send(CDPMessage::root(self.message_id, CDPMethod::GetTargets))
+            .send(CDPMessage::root(self.message_id, CdpMethod::GetTargets))
             .await?;
 
         self.message_id += 1;
@@ -204,8 +204,8 @@ impl Browser {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn get_session(&mut self) -> Result<CDPSession> {
-        let connection = CDPConnection::new(&self.url).await?;
+    pub async fn get_session(&mut self) -> Result<CdpSession> {
+        let connection = CdpConnection::new(&self.url).await?;
         let session = connection.create_session().await?;
 
         Ok(session)
