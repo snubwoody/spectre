@@ -1,13 +1,10 @@
 # Changelog
 
-All notable changes will be tracked in this file. This isn't just a combination of
-commit messages/pull requests but rather a hand curated list of notable changes.
-
 ## [Unreleased]
 
 ### Added
 
-- Added `spectre::test` attribute macro, this macro reuses the same browser instance for every test.
+- Add `spectre::test` attribute macro, this macro reuses the same browser instance for every test.
 
 ### Changed
 
