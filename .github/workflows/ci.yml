@@ -48,7 +48,7 @@ jobs:
           key: ${{runner.os}}-cargo-${{hashFiles('**/Cargo.lock')}}
       - uses: taiki-e/install-action@nextest
       - name: Download chrome
-        run: cargo run --release --bin spectre download chrome
+        run: cargo run --release --bin spectre-cli download chrome
       - name: Run tests
         run: cargo nextest run --no-fail-fast
   fmt:
