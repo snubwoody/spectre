@@ -2,7 +2,7 @@
 //! the Chrome DevTools Protocol.
 mod connection;
 pub mod runtime;
-use crate::Result;
+use crate::{browser::Cookie, Result};
 use crate::dom::DomNode;
 pub use connection::{CdpConnection, CdpSession};
 use runtime::RemoteObject;
@@ -125,8 +125,16 @@ pub enum CdpMethod {
     ///
     /// Corresponds to [`Page.close`](https://vanilla.aslushnikov.com/?Page.close)
     #[serde(rename = "Page.close")]
-    #[serde(rename_all = "camelCase")]
     ClosePage,
+    /// Get all the browser cookies.
+    ///
+    /// Corresponds to [`Storage.getCookies`](https://vanilla.aslushnikov.com/?Storage.getCookies)
+    #[serde(rename = "Storage.getCookies")]
+    #[serde(rename_all = "camelCase")]
+    GetCookies{
+        #[serde(skip_serializing_if="Option::is_none")]
+        browser_context_id: Option<String>
+    },
 }
 
 /// Screenshot image formats supported by the browser
@@ -167,7 +175,11 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
+pub struct GetCookiesBody {
+    pub cookies: Vec<Cookie>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ResolveNodeBody {
     pub object: RemoteObject,
 }

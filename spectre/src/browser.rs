@@ -10,6 +10,38 @@ use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
+/// A browser cookie.
+/// 
+/// See the [mdn docs](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/cookies/Cookie)
+/// for more info.
+#[derive(Debug,Clone,Serialize,Deserialize,PartialEq,Default)]
+#[serde(rename_all="camelCase")]
+pub struct Cookie{
+    pub name: String,
+    pub value: String,
+    /// The domain the cookie belongs to
+    pub domain: String,
+    pub path: String,
+    /// A number representing the expiration date of the cookie as the number of 
+    /// seconds since the UNIX epoch. Not provided for session cookies.
+    pub expires: u64,
+    pub secure: bool,
+    pub size: i32,
+    /// If true then the cookie is not accessible using javascript in the browser.
+    pub http_only: bool,
+    pub session: bool,
+    pub same_site: CookieSameSite
+}
+
+/// The cookies same site policy.
+#[derive(Debug,Clone,Serialize,Deserialize,PartialEq,Default)]
+pub enum CookieSameSite{
+    #[default]
+    Strict,
+    Lax,
+    None
+}
+
 /// An instance of a browser. The browser is started on a
 /// local port and listens to json messages via websockets.
 ///

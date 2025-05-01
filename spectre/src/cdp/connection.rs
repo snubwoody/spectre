@@ -3,6 +3,8 @@ use super::{
     AttachToTargetResponse, CDPMessage, CdpMethod, CDPResponse, GetDocumentBody, GetTargetResponse,
     PageNavigateResponse, QuerySelectorBody, ResolveNodeBody,
 };
+use crate::browser::Cookie;
+use crate::cdp::GetCookiesBody;
 use crate::dom::{DomNode, Element};
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
@@ -173,6 +175,46 @@ impl CdpSession {
 
     pub async fn close_page(&self) -> Result<()> {
         let _:Value = self.send(CdpMethod::ClosePage).await?;
+        Ok(())
+    }
+
+    /// Get all browser cookies
+    /// 
+    /// # Example
+    /// ```
+    /// use spectre::{Browser,Error};
+    /// 
+    /// #[tokio::main]
+    /// async fn main() -> Result<(),Error>{
+    ///     let mut browser = Browser::start().await?;
+    ///     let session = browser.get_session().await?;
+    ///     let cookies = session.get_cookies().await?;
+    /// 
+    ///     assert!(cookies.is_empty());
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn get_cookies(&self) -> Result<Vec<Cookie>> {
+        let method = CdpMethod::GetCookies { browser_context_id: None };
+        let response: CDPResponse<GetCookiesBody> = self.send(method).await?;
+        
+        Ok(response.body().cookies)
+    }
+
+    pub async fn set_cookies(&self) -> Result<Vec<Cookie>> {
+        let method = CdpMethod::GetCookies { browser_context_id: None };
+        let response: CDPResponse<GetCookiesBody> = self.send(method).await?;
+        
+        Ok(response.body().cookies)
+    }
+
+    /// Get all cookies in a browser context. 
+    pub async fn get_context_cookies(&self,context_id:&str) -> Result<()> {
+        let method = CdpMethod::GetCookies { 
+            browser_context_id: Some(context_id.to_string()) 
+        };
+        let response:Value = self.send(method).await?;
+        dbg!(response);
         Ok(())
     }
 

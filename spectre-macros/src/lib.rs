@@ -2,14 +2,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::ItemFn;
 
-/// Create a page for every test using one browser.
-///
-/// ```ignore
-/// #[spectre::test]
-/// async fn test(page: Page){
-///
-/// }
-/// ```
+/// Use a single browser between tests.
 #[proc_macro_attribute]
 pub fn test(_: TokenStream, input: TokenStream) -> TokenStream {
     let input_fn = syn::parse_macro_input!(input as ItemFn);
