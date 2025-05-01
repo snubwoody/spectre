@@ -54,8 +54,8 @@ pub struct Browser {
 
 impl Browser {
     pub async fn is_running(port: u16) -> bool {
-        let reponse = reqwest::get(format!("http://localhost:{}/json/version", port)).await; 
-        if reponse.is_ok() {
+        let response = reqwest::get(format!("http://localhost:{}/json/version", port)).await;
+        if response.is_ok() {
             return true;
         }
 
