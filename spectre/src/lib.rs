@@ -17,6 +17,10 @@
 //!     Ok(())
 //! }
 //! ```
+//! 
+//! # Pages
+//! 
+//! [`Page`]'s are individual chrome tabs that can be controlled.
 mod browser;
 pub mod cdp;
 pub mod dom;

@@ -50,16 +50,33 @@ async fn get_port() -> Result<u16>{
 ///     }
 /// }
 /// ```
+#[derive(Debug)]
 pub struct Browser {
+    /// The process the browser is running on. This is 
+    /// `None` if we connected to an already running
+    /// browser (`Browser::connect`) instead of starting one. 
     process: Option<Child>,
     conn: CDPConnection,
     /// The local network address of chrome
     url: String,
     message_id: i32,
+    kill_on_drop: bool,
     port: u16,
 }
 
 impl Browser {
+    pub async fn is_running(port: u16) -> bool{
+        if let Ok(_) = reqwest::get(format!("http://localhost:{}/json/version", port)).await {
+            return true;
+        }
+        
+        false
+    }
+
+    pub fn kill_on_drop(&mut self,value: bool){
+        self.kill_on_drop = value;
+    }
+
     /// Start the browser child process.
     fn start_process(port: u16) -> crate::Result<Child>{
         let home_path = home::home_dir().ok_or(Error::FailedToGetHomeDir)?;
@@ -92,6 +109,7 @@ impl Browser {
             web_socket_debugger_url: String,
         }
 
+        // Wait for the browser to be active
         let mut interval = tokio::time::interval(Duration::from_millis(100));
         let mut elapsed = Duration::default();
         loop {
@@ -132,7 +150,23 @@ impl Browser {
         Ok(Self {
             process: Some(child),
             conn,
+            kill_on_drop: true,
             url,
+            message_id: 0,
+            port,
+        })
+    }
+
+    /// Start a new browser on a specific port
+    pub async fn start_on(port: u16) -> Result<Self> {
+        let child = Self::start_process(port)?;
+        let (url,conn) = Self::connect_to_process(port).await?;
+
+        Ok(Self {
+            process: Some(child),
+            conn,
+            url,
+            kill_on_drop: true,
             message_id: 0,
             port,
         })
@@ -140,32 +174,16 @@ impl Browser {
 
     /// Connect to a running browser instance
     pub async fn connect(port: u16) -> Result<Self> {
-        #[derive(Debug, Serialize, Deserialize)]
-        #[serde(rename_all = "camelCase")]
-        struct ResponseBody {
-            web_socket_debugger_url: String,
-        }
+        let (url,conn) = Self::connect_to_process(port).await?;
 
-        match reqwest::get(format!("http://localhost:{}/json/version", port)).await {
-            Ok(response) => {
-                let body: ResponseBody = response.json().await?;
-                let ws_url = body.web_socket_debugger_url;
-                let conn = CDPConnection::new(&ws_url).await?;
-
-                return Ok(Self {
-                    process: None,
-                    conn,
-                    url: ws_url,
-                    message_id: 0,
-                    port,
-                });
-            }
-            Err(err) => {
-                // TODO return custom error here
-
-                return Err(err.into());
-            }
-        }
+        Ok(Self {
+            process: None,
+            conn,
+            url,
+            kill_on_drop: true,
+            message_id: 0,
+            port,
+        })
     }
 
     pub fn url(&self) -> String {
@@ -238,7 +256,10 @@ impl Drop for Browser {
         // TODO close the browser gracefully first
         // https://vanilla.aslushnikov.com/?Browser.close
         // Don't leave zombie processes
-
+        if !self.kill_on_drop{
+            return;
+        }
+        
         if let Some(child) = &mut self.process{
             child.kill()
                 .expect("Failed to kill child");
@@ -267,13 +288,20 @@ mod tests {
 
     #[tokio::test]
     async fn connect_to_running_browser() -> Result<()> {
-        let mut browser = Browser::start().await?;
-        let _ = browser.goto("https://youtube.com").await?;
-        let targets = browser.get_targets().await?;
-        targets
-            .iter()
-            .find(|t| t.url() == "https://www.youtube.com/")
-            .unwrap();
+        let port = get_port().await?;
+        let _browser = Browser::start_on(port).await?;
+        Browser::connect(port).await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn check_if_browser_is_running() -> Result<()> {
+        let port = get_port().await?;
+        assert!(!Browser::is_running(port).await);
+        let _browser = Browser::start_on(port).await?;
+
+        assert!(Browser::is_running(port).await);
 
         Ok(())
     }
