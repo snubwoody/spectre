@@ -20,7 +20,6 @@ async fn get_targets() -> Result<()> {
     Ok(())
 }
 
-
 #[spectre::test]
 async fn create_target() -> Result<()> {
     let conn = CDPConnection::new(&browser.url()).await?;
@@ -55,7 +54,6 @@ async fn attach_to_target() -> Result<()> {
 
 #[spectre::test]
 async fn page_navigate() -> Result<()> {
-    let browser = Browser::start().await?;
     let conn = CDPConnection::new(&browser.url()).await?;
     let message = CDPMessage::get_targets(1);
 
@@ -78,7 +76,6 @@ async fn page_navigate() -> Result<()> {
 
 #[spectre::test]
 async fn get_document() -> Result<()> {
-    let mut browser = Browser::start().await?;
     let page = browser.goto("https://example.com").await?;
 
     let url = page.endpoint();
@@ -96,7 +93,6 @@ async fn get_document() -> Result<()> {
 
 #[spectre::test]
 async fn page_navigate_error() -> Result<()> {
-    let browser = Browser::start().await?;
     let conn = CDPConnection::new(&browser.url()).await?;
     let message = CDPMessage::get_targets(1);
 
@@ -120,7 +116,6 @@ async fn page_navigate_error() -> Result<()> {
 
 #[spectre::test]
 async fn runtime_evaluate() -> Result<()> {
-    let browser = Browser::start().await?;
     let conn = CDPConnection::new(&browser.url()).await?;
 
     let response: GetTargetResponse = conn.send(CDPMessage::get_targets(1)).await?;

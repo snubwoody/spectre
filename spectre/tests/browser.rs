@@ -1,10 +1,9 @@
+use spectre::{Browser, get_available_port};
 use std::mem;
 use tokio_tungstenite::connect_async;
-use spectre::{get_available_port, Browser};
 
 #[spectre::test]
 async fn goto_page() -> spectre::Result<()> {
-    let mut browser = Browser::start().await?;
     let _ = browser.goto("https://youtube.com").await?;
     let targets = browser.get_targets().await?;
     targets
@@ -15,7 +14,7 @@ async fn goto_page() -> spectre::Result<()> {
     Ok(())
 }
 
-#[spectre::test]
+#[tokio::test]
 async fn connect_to_running_browser() -> spectre::Result<()> {
     let port = get_available_port().await?;
     let _browser = Browser::start_on(port).await?;
@@ -24,7 +23,7 @@ async fn connect_to_running_browser() -> spectre::Result<()> {
     Ok(())
 }
 
-#[spectre::test]
+#[tokio::test]
 async fn check_if_browser_is_running() -> spectre::Result<()> {
     let port = get_available_port().await?;
     assert!(!Browser::is_running(port).await);
@@ -35,7 +34,7 @@ async fn check_if_browser_is_running() -> spectre::Result<()> {
     Ok(())
 }
 
-#[spectre::test]
+#[tokio::test]
 async fn browser_closed_when_dropped() -> spectre::Result<()> {
     let browser = Browser::start().await?;
     let url = browser.url();

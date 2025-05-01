@@ -33,8 +33,8 @@ pub fn test(_: TokenStream, input: TokenStream) -> TokenStream {
 
     let _ = dotenv::dotenv();
     let var = std::env::var("SPECTRE_TEST_PORT").expect("please set `SPECTRE_TEST_PORT`");
-    let port:u16 = var.parse().unwrap();
-    
+    let port: u16 = var.parse().unwrap();
+
     quote! {
         #[tokio::test]
         #(#attrs)*

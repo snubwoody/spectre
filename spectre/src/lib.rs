@@ -17,9 +17,9 @@
 //!     Ok(())
 //! }
 //! ```
-//! 
+//!
 //! # Pages
-//! 
+//!
 //! [`Page`]'s are individual chrome tabs that can be controlled.
 mod browser;
 pub mod cdp;
@@ -36,14 +36,13 @@ pub use spectre_macros::test;
 pub const EMPTY_PAGE: &str = "https://blank.org/";
 
 /// Get any available port on the device
-pub async fn get_available_port() -> Result<u16>{
+pub async fn get_available_port() -> Result<u16> {
     // Get any available port
     let listener = std::net::TcpListener::bind("127.0.0.1:0")?;
     let port = listener.local_addr()?.port();
-    
+
     // Immediately drop the listener to free the port
     std::mem::drop(listener);
 
     Ok(port)
 }
-

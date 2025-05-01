@@ -1,8 +1,6 @@
 use spectre::{
-    cdp::{
-        CDPConnection, CDPMessage, CDPMethod,
-        GetTargetResponse, 
-    }, Result
+    Result,
+    cdp::{CDPConnection, CDPMessage, CDPMethod, GetTargetResponse},
 };
 
 #[spectre::test]
@@ -14,4 +12,3 @@ async fn get_targets() -> Result<()> {
     assert_eq!(response.id(), 1);
     Ok(())
 }
-

@@ -21,7 +21,7 @@ pub struct CDPConnection {
     stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
 }
 
-impl Debug for CDPConnection{
+impl Debug for CDPConnection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CDPConnection")
             .field("stream", &"Arc<Mutex<WebSocketStream<...>>>")

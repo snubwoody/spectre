@@ -1,6 +1,6 @@
-use crate::{get_available_port, Error};
 use crate::cdp::{CDPSession, WebSocketTarget};
 use crate::page::Page;
+use crate::{Error, get_available_port};
 use crate::{
     Result,
     cdp::{CDPConnection, CDPMessage, CDPMethod, GetTargetResponse, Target},
@@ -9,7 +9,6 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
-
 
 /// An instance of a browser. The browser is started on a
 /// local port and listens to json messages via websockets.
@@ -41,9 +40,9 @@ use std::time::Duration;
 /// ```
 #[derive(Debug)]
 pub struct Browser {
-    /// The process the browser is running on. This is 
+    /// The process the browser is running on. This is
     /// `None` if we connected to an already running
-    /// browser (`Browser::connect`) instead of starting one. 
+    /// browser (`Browser::connect`) instead of starting one.
     process: Option<Child>,
     conn: CDPConnection,
     /// The local network address of chrome
@@ -54,20 +53,20 @@ pub struct Browser {
 }
 
 impl Browser {
-    pub async fn is_running(port: u16) -> bool{
+    pub async fn is_running(port: u16) -> bool {
         if let Ok(_) = reqwest::get(format!("http://localhost:{}/json/version", port)).await {
             return true;
         }
-        
+
         false
     }
 
-    pub fn kill_on_drop(&mut self,value: bool){
+    pub fn kill_on_drop(&mut self, value: bool) {
         self.kill_on_drop = value;
     }
 
     /// Start the browser child process.
-    fn start_process(port: u16) -> crate::Result<Child>{
+    fn start_process(port: u16) -> crate::Result<Child> {
         let home_path = home::home_dir().ok_or(Error::FailedToGetHomeDir)?;
         let spectre_path = home_path.join(".spectre").join("browsers");
         let chrome_path = if cfg!(target_os = "windows") {
@@ -87,11 +86,11 @@ impl Browser {
             ])
             .stdout(Stdio::null()) // Silence output
             .spawn()?;
-        
+
         Ok(child)
     }
 
-    async fn connect_to_process(port: u16) -> crate::Result<(String,CDPConnection)>{
+    async fn connect_to_process(port: u16) -> crate::Result<(String, CDPConnection)> {
         #[derive(Debug, Serialize, Deserialize)]
         #[serde(rename_all = "camelCase")]
         struct ResponseBody {
@@ -109,7 +108,7 @@ impl Browser {
                     let ws_url = body.web_socket_debugger_url;
                     let conn = CDPConnection::new(&ws_url).await?;
 
-                    return Ok((ws_url,conn));
+                    return Ok((ws_url, conn));
                 }
                 Err(err) => {
                     if elapsed > Duration::from_secs(3) {
@@ -121,11 +120,11 @@ impl Browser {
         }
     }
     /// Start a new browser
-    /// 
+    ///
     /// # Example
     /// ```
     /// use spectre::Browser;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> spectre::Result<()>{
     ///     let browser = Browser::start().await?;
@@ -134,7 +133,7 @@ impl Browser {
     pub async fn start() -> Result<Self> {
         let port = get_available_port().await?;
         let child = Self::start_process(port)?;
-        let (url,conn) = Self::connect_to_process(port).await?;
+        let (url, conn) = Self::connect_to_process(port).await?;
 
         Ok(Self {
             process: Some(child),
@@ -149,7 +148,7 @@ impl Browser {
     /// Start a new browser on a specific port
     pub async fn start_on(port: u16) -> Result<Self> {
         let child = Self::start_process(port)?;
-        let (url,conn) = Self::connect_to_process(port).await?;
+        let (url, conn) = Self::connect_to_process(port).await?;
 
         Ok(Self {
             process: Some(child),
@@ -163,7 +162,7 @@ impl Browser {
 
     /// Connect to a running browser instance
     pub async fn connect(port: u16) -> Result<Self> {
-        let (url,conn) = Self::connect_to_process(port).await?;
+        let (url, conn) = Self::connect_to_process(port).await?;
 
         Ok(Self {
             process: None,
@@ -245,14 +244,12 @@ impl Drop for Browser {
         // TODO close the browser gracefully first
         // https://vanilla.aslushnikov.com/?Browser.close
         // Don't leave zombie processes
-        if !self.kill_on_drop{
+        if !self.kill_on_drop {
             return;
         }
-        
-        if let Some(child) = &mut self.process{
-            child.kill()
-                .expect("Failed to kill child");
+
+        if let Some(child) = &mut self.process {
+            child.kill().expect("Failed to kill child");
         }
     }
 }
-
