@@ -7,6 +7,7 @@ commit messages/pull requests but rather a hand curated list of notable changes.
 
 ### Changed
 
+- Added `spectre::test` attribute macro, this macro reuses the same browser instance for every test.
 - Download chrome to `$HOME/.spectre/browsers` instead of the the current working directory.
 
 ## 0.1.0 - 2025-4-28
