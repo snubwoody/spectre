@@ -135,6 +135,16 @@ pub enum CdpMethod {
         #[serde(skip_serializing_if="Option::is_none")]
         browser_context_id: Option<String>
     },
+    /// Cookies to be set.
+    ///
+    /// Corresponds to [`Storage.setCookies`](https://vanilla.aslushnikov.com/?Storage.setCookies)
+    #[serde(rename = "Storage.setCookies")]
+    #[serde(rename_all = "camelCase")]
+    SetCookies{
+        cookies: Vec<Cookie>,
+        #[serde(skip_serializing_if="Option::is_none")]
+        browser_context_id: Option<String>
+    },
 }
 
 /// Screenshot image formats supported by the browser

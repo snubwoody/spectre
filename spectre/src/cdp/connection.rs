@@ -201,11 +201,10 @@ impl CdpSession {
         Ok(response.body().cookies)
     }
 
-    pub async fn set_cookies(&self) -> Result<Vec<Cookie>> {
-        let method = CdpMethod::GetCookies { browser_context_id: None };
-        let response: CDPResponse<GetCookiesBody> = self.send(method).await?;
-        
-        Ok(response.body().cookies)
+    pub async fn set_cookies(&self,cookies: Vec<Cookie>) -> Result<()> {
+        let method = CdpMethod::SetCookies { cookies, browser_context_id: None };
+        self.send::<Value>(method).await?;
+        Ok(())
     }
 
     /// Get all cookies in a browser context. 

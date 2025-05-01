@@ -1,7 +1,6 @@
 use serde_json::json;
 use spectre::{
-    EMPTY_PAGE, Error, Result,
-    cdp::{CdpConnection, CdpMethod, GetTargetResponse},
+    browser::Cookie, cdp::{CdpConnection, CdpMethod, GetTargetResponse}, Browser, Error, Result, EMPTY_PAGE
 };
 
 #[spectre::test]
@@ -30,6 +29,22 @@ async fn navigate() -> Result<()> {
     let session = connection.create_session().await?;
 
     session.navigate(EMPTY_PAGE).await?;
+    Ok(())
+}
+
+#[tokio::test]
+async fn set_cookies() -> Result<()> {
+    let browser = Browser::start().await?;
+    let cookie = Cookie::default();
+    let name = cookie.name.clone();
+    let cookies = vec![cookie];
+
+    let connection = CdpConnection::new(&browser.url()).await?;
+    let session = connection.create_session().await?;
+    session.set_cookies(cookies).await?;
+    
+    let cookies = session.get_cookies().await?;
+    cookies.iter().find(|c|c.name == name).expect("Cookie not set");
     Ok(())
 }
 
