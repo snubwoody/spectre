@@ -26,15 +26,15 @@ impl Element {
         Ok(())
     }
 
-    pub async fn hover(){
+    pub async fn hover() {
         todo!()
     }
 
-    pub async fn drag(){
+    pub async fn drag() {
         todo!()
     }
 
-    pub async fn click(){
+    pub async fn click() {
         todo!()
     }
 }

@@ -11,63 +11,62 @@ use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
 /// A browser cookie.
-/// 
+///
 /// See the [mdn docs](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/cookies/Cookie)
 /// for more info.
-#[derive(Debug,Clone,Serialize,Deserialize,PartialEq,Eq, PartialOrd, Ord)]
-#[serde(rename_all="camelCase")]
-pub struct Cookie{
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "camelCase")]
+pub struct Cookie {
     pub name: String,
     pub value: String,
     /// The domain the cookie belongs to
     pub domain: String,
     pub path: String,
-    /// A number representing the expiration date of the cookie as the number of 
+    /// A number representing the expiration date of the cookie as the number of
     /// seconds since the UNIX epoch. Not provided for session cookies.
     pub expires: i64,
     pub secure: bool,
-    // The cookie size is determined by the browser so it 
+    // The cookie size is determined by the browser so it
     // can't be sent in messages.
     #[serde(skip_serializing)]
     pub size: usize,
     /// If true then the cookie is not accessible using javascript in the browser.
     pub http_only: bool,
     pub session: bool,
-    pub same_site: CookieSameSite
+    pub same_site: CookieSameSite,
 }
 
-impl Default for Cookie{
+impl Default for Cookie {
     fn default() -> Self {
-        let id:u16 = rand::random();
+        let id: u16 = rand::random();
         let name = format!("cookie-{id}");
         let value = "default value".to_string();
         let path = "/".to_string();
         let domain = "https://www.example.com/".to_string();
         let expires = chrono::Utc::now() + Duration::from_secs(3600);
-        
 
-        Self { 
-            name, 
-            value, 
-            domain, 
-            path, 
-            expires: expires.timestamp(), 
-            secure: false, 
-            size: 0, 
-            http_only: false, 
-            session: false, 
-            same_site: CookieSameSite::default() 
+        Self {
+            name,
+            value,
+            domain,
+            path,
+            expires: expires.timestamp(),
+            secure: false,
+            size: 0,
+            http_only: false,
+            session: false,
+            same_site: CookieSameSite::default(),
         }
     }
 }
 
 /// The cookies same site policy.
-#[derive(Debug,Clone,Serialize,Deserialize,PartialEq,Default,Eq, PartialOrd, Ord)]
-pub enum CookieSameSite{
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default, Eq, PartialOrd, Ord)]
+pub enum CookieSameSite {
     #[default]
     Strict,
     Lax,
-    None
+    None,
 }
 
 // TODO add browser launcher or builder

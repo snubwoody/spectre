@@ -2,8 +2,8 @@
 //! the Chrome DevTools Protocol.
 mod connection;
 pub mod runtime;
-use crate::{browser::Cookie, Result};
 use crate::dom::DomNode;
+use crate::{Result, browser::Cookie};
 pub use connection::{CdpConnection, CdpSession};
 use runtime::RemoteObject;
 use serde::{Deserialize, Serialize};
@@ -134,19 +134,19 @@ pub enum CdpMethod {
     /// Corresponds to [`Storage.getCookies`](https://vanilla.aslushnikov.com/?Storage.getCookies)
     #[serde(rename = "Storage.getCookies")]
     #[serde(rename_all = "camelCase")]
-    GetCookies{
-        #[serde(skip_serializing_if="Option::is_none")]
-        browser_context_id: Option<String>
+    GetCookies {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        browser_context_id: Option<String>,
     },
     /// Cookies to be set.
     ///
     /// Corresponds to [`Storage.setCookies`](https://vanilla.aslushnikov.com/?Storage.setCookies)
     #[serde(rename = "Storage.setCookies")]
     #[serde(rename_all = "camelCase")]
-    SetCookies{
+    SetCookies {
         cookies: Vec<Cookie>,
-        #[serde(skip_serializing_if="Option::is_none")]
-        browser_context_id: Option<String>
+        #[serde(skip_serializing_if = "Option::is_none")]
+        browser_context_id: Option<String>,
     },
 }
 

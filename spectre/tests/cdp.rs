@@ -1,13 +1,8 @@
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use spectre::{
-    browser::Cookie, 
-    cdp::{
-        CdpConnection, 
-        CdpMessage, 
-        CdpMethod, 
-        GetTargetResponse
-    }, 
-    Browser, Error, Result, EMPTY_PAGE
+    Browser, EMPTY_PAGE, Error, Result,
+    browser::Cookie,
+    cdp::{CdpConnection, CdpMessage, CdpMethod, GetTargetResponse},
 };
 
 #[tokio::test]
@@ -17,8 +12,8 @@ async fn default_target() -> Result<()> {
     let connection = CdpConnection::new(&browser.url()).await?;
     let response: GetTargetResponse = connection.send(message).await?;
     let targets = response.body().targets;
-    assert_eq!(targets[0].url(),"chrome://newtab/");
-    
+    assert_eq!(targets[0].url(), "chrome://newtab/");
+
     Ok(())
 }
 
@@ -26,16 +21,16 @@ async fn default_target() -> Result<()> {
 async fn close_target() -> Result<()> {
     let browser = Browser::start().await?;
     let connection = CdpConnection::new(&browser.url()).await?;
-    
+
     let message = CdpMessage::root(0, CdpMethod::GetTargets);
     let response: GetTargetResponse = connection.send(message).await?;
     let targets = response.body().targets;
-    
+
     assert!(targets.len() == 1);
 
     let target_id = targets[0].target_id.clone();
     let message = CdpMessage::root(1, CdpMethod::CloseTarget { target_id });
-    
+
     connection.send::<Value>(message).await?;
 
     let message = CdpMessage::root(0, CdpMethod::GetTargets);
@@ -85,9 +80,12 @@ async fn set_cookies() -> Result<()> {
     let connection = CdpConnection::new(&browser.url()).await?;
     let session = connection.create_session().await?;
     session.set_cookies(cookies).await?;
-    
+
     let cookies = session.get_cookies().await?;
-    cookies.iter().find(|c|c.name == name).expect("Cookie not set");
+    cookies
+        .iter()
+        .find(|c| c.name == name)
+        .expect("Cookie not set");
     Ok(())
 }
 

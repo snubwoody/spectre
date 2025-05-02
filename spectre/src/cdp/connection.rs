@@ -1,6 +1,6 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CdpMessage, CdpMethod, CDPResponse, GetDocumentBody, GetTargetResponse,
+    AttachToTargetResponse, CDPResponse, CdpMessage, CdpMethod, GetDocumentBody, GetTargetResponse,
     PageNavigateResponse, QuerySelectorBody, ResolveNodeBody,
 };
 use crate::browser::Cookie;
@@ -17,7 +17,7 @@ use tokio::sync::Mutex;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
-/// A raw connection to the Chrome Devtool protocol, using web sockets to 
+/// A raw connection to the Chrome Devtool protocol, using web sockets to
 /// communicate.
 #[derive(Clone)]
 pub struct CdpConnection {
@@ -32,11 +32,11 @@ impl Debug for CdpConnection {
     }
 }
 
-impl CdpConnection  {
+impl CdpConnection {
     pub async fn new(url: &str) -> Result<Self> {
         let (stream, _) = connect_async(url).await?;
         let stream = Arc::new(Mutex::new(stream));
-        Ok(Self { stream})
+        Ok(Self { stream })
     }
 
     pub async fn create_session(self) -> Result<CdpSession> {
@@ -175,45 +175,50 @@ impl CdpSession {
     }
 
     pub async fn close_page(&self) -> Result<()> {
-        let _:Value = self.send(CdpMethod::ClosePage).await?;
+        let _: Value = self.send(CdpMethod::ClosePage).await?;
         Ok(())
     }
 
     /// Get all browser cookies
-    /// 
+    ///
     /// # Example
     /// ```
     /// use spectre::{Browser,Error};
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(),Error>{
     ///     let mut browser = Browser::start().await?;
     ///     let session = browser.get_session().await?;
     ///     let cookies = session.get_cookies().await?;
-    /// 
+    ///
     ///     assert!(cookies.is_empty());
     ///     Ok(())
     /// }
     /// ```
     pub async fn get_cookies(&self) -> Result<Vec<Cookie>> {
-        let method = CdpMethod::GetCookies { browser_context_id: None };
+        let method = CdpMethod::GetCookies {
+            browser_context_id: None,
+        };
         let response: CDPResponse<GetCookiesBody> = self.send(method).await?;
-        
+
         Ok(response.body().cookies)
     }
 
-    pub async fn set_cookies(&self,cookies: Vec<Cookie>) -> Result<()> {
-        let method = CdpMethod::SetCookies { cookies, browser_context_id: None };
+    pub async fn set_cookies(&self, cookies: Vec<Cookie>) -> Result<()> {
+        let method = CdpMethod::SetCookies {
+            cookies,
+            browser_context_id: None,
+        };
         self.send::<Value>(method).await?;
         Ok(())
     }
 
-    /// Get all cookies in a browser context. 
-    pub async fn get_context_cookies(&self,context_id:&str) -> Result<()> {
-        let method = CdpMethod::GetCookies { 
-            browser_context_id: Some(context_id.to_string()) 
+    /// Get all cookies in a browser context.
+    pub async fn get_context_cookies(&self, context_id: &str) -> Result<()> {
+        let method = CdpMethod::GetCookies {
+            browser_context_id: Some(context_id.to_string()),
         };
-        let response:Value = self.send(method).await?;
+        let response: Value = self.send(method).await?;
         dbg!(response);
         Ok(())
     }
