@@ -17,10 +17,9 @@
 //!     Ok(())
 //! }
 //! ```
-//!
-//! # Pages
-//!
-//! [`Page`]'s are individual chrome tabs that can be controlled.
+//! 
+//! CDP works by sending specific messages over the connection and responding 
+//! accordingly. You can see all the available messages at [`CdpMessage`].
 pub mod browser;
 pub mod cdp;
 pub mod dom;

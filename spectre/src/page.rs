@@ -116,3 +116,14 @@ impl Page {
         Ok(())
     }
 }
+
+impl Drop for Page {
+    fn drop(&mut self) {
+        // I don't really know better (simple) way to do this
+        // it should be okay in most scenarios
+        let session = self.session.clone();
+        tokio::spawn(async move{
+            session.close_page().await
+        });
+    }
+}
