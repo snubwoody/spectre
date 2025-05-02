@@ -35,6 +35,8 @@ All notable changes to this project will be documented in this file.
 - Update debug implementation for `CDPConnection` to hide the innter tcp steam
 - Use `spectre::test` on all appropriate tests
 - Rename `CDP` to `Cdp`
+- Change socket address from `ipv4` to `ipv6` in `get_available_port`
+- Rename `CDPMessage` to `CdpMessage`
 
 ## [0.1.0] - 2025-04-29
 
