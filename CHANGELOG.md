@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Add method for fetching browser cookies
 - Manually implement `Default` for `Cookie` to add custom appropriate fields
 - Implement methods for setting browser cookies
+- Add `CloseTarget` variant to `CdpMethod`
 
 ### 🐛 Bug Fixes
 
