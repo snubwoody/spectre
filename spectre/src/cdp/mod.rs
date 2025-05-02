@@ -76,6 +76,9 @@ pub enum CdpMethod {
     #[serde(rename = "Target.attachToTarget")]
     #[serde(rename_all = "camelCase")]
     AttachToTarget { target_id: String, flatten: bool },
+    #[serde(rename = "Target.closeTarget")]
+    #[serde(rename_all = "camelCase")]
+    CloseTarget { target_id: String },
     #[serde(rename = "Page.captureScreenshot")]
     Screenshot { format: ScreenshotFormat },
     /// Navigates the current page to the given url.
