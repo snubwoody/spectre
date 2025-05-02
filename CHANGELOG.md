@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Manually implement `Default` for `Cookie` to add custom appropriate fields
 - Implement methods for setting browser cookies
 - Add `CloseTarget` variant to `CdpMethod`
+- Close `Page`'s when the value is dropped
 
 ### 🐛 Bug Fixes
 
