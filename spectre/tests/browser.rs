@@ -9,7 +9,7 @@ async fn goto_page() -> spectre::Result<()> {
     targets
         .iter()
         .find(|t| t.url() == "https://www.youtube.com/")
-        .unwrap();
+        .expect("New page url not found");
 
     Ok(())
 }

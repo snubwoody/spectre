@@ -12,7 +12,7 @@ use std::fmt::Debug;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CDPMessage {
+pub struct CdpMessage {
     id: i32,
     // Null for the root session
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -21,7 +21,7 @@ pub struct CDPMessage {
     method: CdpMethod,
 }
 
-impl CDPMessage {
+impl CdpMessage {
     pub fn new(id: i32, session_id: &str, method: CdpMethod) -> Self {
         Self {
             id,

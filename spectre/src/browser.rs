@@ -3,7 +3,7 @@ use crate::page::Page;
 use crate::{Error, get_available_port};
 use crate::{
     Result,
-    cdp::{CdpConnection, CDPMessage, CdpMethod, GetTargetResponse, Target},
+    cdp::{CdpConnection, CdpMessage, CdpMethod, GetTargetResponse, Target},
 };
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -244,7 +244,7 @@ impl Browser {
     pub async fn get_targets(&mut self) -> Result<Vec<Target>> {
         let response: GetTargetResponse = self
             .conn
-            .send(CDPMessage::root(self.message_id, CdpMethod::GetTargets))
+            .send(CdpMessage::root(self.message_id, CdpMethod::GetTargets))
             .await?;
 
         self.message_id += 1;

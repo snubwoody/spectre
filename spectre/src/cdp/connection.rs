@@ -1,6 +1,6 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CDPMessage, CdpMethod, CDPResponse, GetDocumentBody, GetTargetResponse,
+    AttachToTargetResponse, CdpMessage, CdpMethod, CDPResponse, GetDocumentBody, GetTargetResponse,
     PageNavigateResponse, QuerySelectorBody, ResolveNodeBody,
 };
 use crate::browser::Cookie;
@@ -17,7 +17,8 @@ use tokio::sync::Mutex;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
-/// A raw connection to the Chrome Devtool protocol.
+/// A raw connection to the Chrome Devtool protocol, using web sockets to 
+/// communicate.
 #[derive(Clone)]
 pub struct CdpConnection {
     stream: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>,
@@ -31,23 +32,23 @@ impl Debug for CdpConnection {
     }
 }
 
-impl CdpConnection {
+impl CdpConnection  {
     pub async fn new(url: &str) -> Result<Self> {
         let (stream, _) = connect_async(url).await?;
         let stream = Arc::new(Mutex::new(stream));
-        Ok(Self { stream })
+        Ok(Self { stream})
     }
 
     pub async fn create_session(self) -> Result<CdpSession> {
         // TODO maybe use a reference and clone self
-        let response: GetTargetResponse = self.send(CDPMessage::get_targets(1)).await?;
+        let response: GetTargetResponse = self.send(CdpMessage::get_targets(1)).await?;
         let targets = response.body().targets;
 
         let method = CdpMethod::AttachToTarget {
             target_id: targets[0].target_id.clone(),
             flatten: true,
         };
-        let message = CDPMessage::root(1, method);
+        let message = CdpMessage::root(1, method);
         let response: AttachToTargetResponse = self.send(message).await?;
         let session_id = response.body().session_id;
 
@@ -56,7 +57,7 @@ impl CdpConnection {
     }
 
     /// Send a message
-    pub async fn send<T>(&self, message: CDPMessage) -> Result<T>
+    pub async fn send<T>(&self, message: CdpMessage) -> Result<T>
     where
         T: DeserializeOwned,
     {
@@ -306,7 +307,7 @@ impl CdpSession {
         T: DeserializeOwned,
     {
         let id: i32 = rand::random();
-        let message = CDPMessage::new(id, &self.session_id, method);
+        let message = CdpMessage::new(id, &self.session_id, method);
         let response: T = self.conn.send(message).await?;
         Ok(response)
     }

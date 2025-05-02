@@ -25,6 +25,18 @@ impl Element {
         self.resolve_node().await?;
         Ok(())
     }
+
+    pub async fn hover(){
+        todo!()
+    }
+
+    pub async fn drag(){
+        todo!()
+    }
+
+    pub async fn click(){
+        todo!()
+    }
 }
 
 /// Html attributes
