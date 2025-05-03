@@ -1,14 +1,13 @@
 use super::runtime::{EvaluateResponse, ExceptionDetails};
 use super::{
-    AttachToTargetResponse, CDPResponse, CdpMessage, CdpMethod, GetDocumentBody, GetTargetResponse,
-    PageNavigateResponse, QuerySelectorBody, ResolveNodeBody,
+    AttachToTargetResponse, CDPResponse, CdpMessage, CdpMethod, GetDocumentBody, GetTargetResponse, MouseButton, MouseEvent, PageNavigateResponse, QuerySelectorBody, ResolveNodeBody
 };
 use crate::browser::Cookie;
 use crate::cdp::GetCookiesBody;
 use crate::dom::{DomNode, Element};
 use crate::{Error, Result, error::CDPError};
 use futures_util::{SinkExt, StreamExt};
-use serde::de::DeserializeOwned;
+use serde::de::{DeserializeOwned};
 use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::Arc;
@@ -175,7 +174,101 @@ impl CdpSession {
     }
 
     pub async fn close_page(&self) -> Result<()> {
-        let _: Value = self.send(CdpMethod::ClosePage).await?;
+        self.send::<Value>(CdpMethod::ClosePage).await?;
+        Ok(())
+    }
+
+    /// Press the left mouse button down at the specified coordinates.
+    /// 
+    /// # Example
+    /// ```
+    /// use spectre::{Browser,Result};
+    /// 
+    /// #[tokio::main]
+    /// async fn main() -> Result<()>{
+    ///     let mut browser = Browser::start().await?;
+    ///     let session = browser.get_session().await?;
+    ///     
+    ///     session.left_mouse_down(200.0,500.0,1).await?;
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn left_mouse_down(&self,x:f32,y:f32,click_count: u32) -> Result<()> {
+        let method = CdpMethod::DispatchMouseEvent { 
+            event_type: MouseEvent::MousePressed, 
+            x, 
+            y, 
+            button: Some(MouseButton::Left), 
+            click_count, 
+            delta_x: 0, 
+            delta_y: 0 
+        };
+        
+        let response = self.send::<Value>(method).await?;
+        
+        if let Some(err) = response.get("error"){
+            let error: CDPError = serde_json::from_value(err.clone())?;
+            return Err(crate::Error::from(error))
+        }
+        Ok(())
+    }
+
+    /// Release the left mouse button at the specified coordinates.
+    /// 
+    /// # Example
+    /// ```
+    /// use spectre::{Browser,Result};
+    /// 
+    /// #[tokio::main]
+    /// async fn main() -> Result<()>{
+    ///     let mut browser = Browser::start().await?;
+    ///     let session = browser.get_session().await?;
+    ///     
+    ///     session.left_mouse_up(200.0,500.0,1).await?;
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn left_mouse_up(&self,x:f32,y:f32,click_count: u32) -> Result<()> {
+        let method = CdpMethod::DispatchMouseEvent { 
+            event_type: MouseEvent::MouseReleased, 
+            x, 
+            y, 
+            button: Some(MouseButton::Left), 
+            click_count, 
+            delta_x: 0, 
+            delta_y: 0 
+        };
+        
+        let response = self.send::<Value>(method).await?;
+        
+        if let Some(err) = response.get("error"){
+            let error: CDPError = serde_json::from_value(err.clone())?;
+            return Err(crate::Error::from(error))
+        }
+        Ok(())
+    }
+
+    /// Click the left mouse button at the specified coordinates.
+    /// 
+    /// # Example
+    /// ```
+    /// use spectre::{Browser,Result};
+    /// 
+    /// #[tokio::main]
+    /// async fn main() -> Result<()>{
+    ///     let mut browser = Browser::start().await?;
+    ///     let session = browser.get_session().await?;
+    ///     
+    ///     // Set the click_count to 2 to double click
+    ///     session.left_click(200.0,500.0,2).await?;
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn left_click(&self,x:f32,y:f32,click_count: u32) -> Result<()> {
+        for i in 1..click_count{
+            self.left_mouse_down(x, y, i).await?;
+            self.left_mouse_up(x, y, i).await?;
+        }
         Ok(())
     }
 
