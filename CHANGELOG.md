@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
 - Implement methods for setting browser cookies
 - Add `CloseTarget` variant to `CdpMethod`
 - Close `Page`'s when the value is dropped
+- Add `DispatchMouseEvent` variant to `CdpMethod`
+- Add methods to dispatch left mouse button events on `CdpSession`
 
 ### 🐛 Bug Fixes
 
