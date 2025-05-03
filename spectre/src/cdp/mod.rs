@@ -66,7 +66,7 @@ impl CdpMessage {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(tag = "method", content = "params")]
 pub enum CdpMethod {
     #[serde(rename = "Target.getTargets")]
@@ -91,7 +91,7 @@ pub enum CdpMethod {
     /// Corresponds to [`DOM.getDocument`](https://vanilla.aslushnikov.com/?DOM.getDocument)
     #[serde(rename = "DOM.getDocument")]
     GetDocument { depth: i32 },
-    /// Evaluates expression on global object.
+    /// Evaluates expression on a global object.
     ///
     /// Corresponds to [`Runtime.evaluate`](https://vanilla.aslushnikov.com/?Runtime.evaluate)
     #[serde(rename = "Runtime.evaluate")]
@@ -148,6 +148,43 @@ pub enum CdpMethod {
         #[serde(skip_serializing_if = "Option::is_none")]
         browser_context_id: Option<String>,
     },
+    /// Dispatch a mouse event to the page.
+    ///
+    /// Corresponds to [`Input.dispatchMouseEvent`](https://vanilla.aslushnikov.com/?Input.dispatchMouseEvent)
+    #[serde(rename = "Input.dispatchMouseEvent")]
+    #[serde(rename_all = "camelCase")]
+    DispatchMouseEvent {
+        #[serde(rename="type")]
+        event_type: MouseEvent,
+        x: f32,
+        y: f32,
+        button: Option<MouseButton>,
+        /// The number of times the mouse button was clicked.
+        click_count: u32,
+        /// x delta in css pixels for the mouse wheel event
+        delta_x: i32,
+        /// y delta in css pixels for the mouse wheel event
+        delta_y: i32,
+    },
+}
+
+#[derive(Debug,Serialize,Deserialize,PartialEq, Eq,Clone, Copy)]
+#[serde(rename_all="camelCase")]
+pub enum MouseEvent{
+    MousePressed,
+    MouseReleased,
+    MouseMoved,
+    MouseWheel
+}
+
+#[derive(Debug,Serialize,Deserialize,PartialEq, Eq,Clone, Copy)]
+#[serde(rename_all="lowercase")]
+pub enum MouseButton{
+    Left,
+    Middle,
+    Right,
+    Back,
+    Forward
 }
 
 /// Screenshot image formats supported by the browser

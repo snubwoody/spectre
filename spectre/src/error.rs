@@ -55,8 +55,10 @@ impl From<CDPError> for Error {
     }
 }
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all="camelCase")]
 pub struct CDPError {
     id: i32,
+    session_id: Option<String>,
     error: CDPErrorBody,
 }
 
